@@ -78,3 +78,9 @@
 .read-the-docs {
   color: #888;
 }
+
+@media (display-mode: standalone) {
+  body {
+    padding-top: env(titlebar-area-height, 0px);
+  }
+}

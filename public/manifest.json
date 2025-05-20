@@ -27,7 +27,7 @@
   ],
   "start_url": "/",
   "scope": "/",
-  "display": "fullscreen",
+  "display": "standalone",
   "theme_color": "#0091ea",
   "background_color": "#ffffff",
   "dir": "ltr",
