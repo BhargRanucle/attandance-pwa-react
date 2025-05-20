@@ -109,7 +109,7 @@ const Dashboard = () => {
                 <div className="text-center p-3 bg-gradient-to-br from-white to-app-light rounded-lg">
                   <p className="text-muted-foreground text-sm">Present Days</p>
                   <p className="text-2xl font-semibold mt-1 text-app-purple">
-                    {weeklySummary.presentDays}
+                    {`${weeklySummary.presentDays}/5`}
                   </p>
                 </div>
                 <div className="text-center p-3 bg-gradient-to-br from-white to-app-light rounded-lg">
