@@ -1,0 +1,108 @@
+{
+  "short_name": "Ranucle",
+  "name": "Ranucle Attendance",
+  "description": "An advanced Progressive Web App providing a seamless and native experience.",
+  "id": "/",
+  "display_override": [
+    "window-controls-overlay"
+  ],
+  "edge_side_panel": {},
+  "prefer_related_applications": false,
+  "icons": [
+    {
+      "src": "favicon.ico",
+      "sizes": "64x64 32x32 24x24 16x16",
+      "type": "image/x-icon"
+    },
+    {
+      "src": "logo192.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "logo512.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ],
+  "start_url": "/",
+  "scope": "/",
+  "display": "fullscreen",
+  "theme_color": "#0091ea",
+  "background_color": "#ffffff",
+  "dir": "ltr",
+  "lang": "en-US",
+  "orientation": "portrait-primary",
+  "categories": ["productivity", "utilities", "business"],
+  "launch_handler": {
+    "client_mode": "navigate-new"
+  },
+  "screenshots": [
+    {
+      "src": "screenshot1.png",
+      "sizes": "1080x1920",
+      "type": "image/png",
+      "label": "Homepage"
+    }
+  ],
+  "file_handlers": [
+    {
+      "action": "/open-file",
+      "accept": {
+        "application/pdf": [".pdf"],
+        "image/png": [".png"]
+      }
+    }
+  ],
+  "handle_links": ["auto"],
+  "protocol_handlers": [
+    {
+      "protocol": "web+ranucle",
+      "url": "/open?url=%s"
+    }
+  ],
+  "share_target": {
+    "action": "/share",
+    "method": "POST",
+    "enctype": "multipart/form-data",
+    "params": {
+      "title": "share-title",
+      "text": "share-text",
+      "url": "share-url",
+      "files": [
+        {
+          "name": "share-files",
+          "accept": ["image/*", "video/*"]
+        }
+      ]
+    }
+  },
+  "shortcuts": [
+    {
+      "name": "Open Home",
+      "short_name": "Home",
+      "description": "Go to the Home",
+      "url": "/",
+      "icons": [{ "src": "shortcut-icon.png", "sizes": "192x192", "type": "image/png" }]
+    }
+  ],
+  "widgets": [
+    {
+      "type": "image",
+      "src": "widget.png",
+      "sizes": "128x128",
+      "description": "Quick access widget"
+    }
+  ],
+  "background_sync": {
+    "name": "RanucleSync",
+    "minInterval": 3600
+  },
+  "periodic_sync": {
+    "tags": ["content-sync", "data-refresh"],
+    "minInterval": 86400
+  },
+  "push_notifications": {
+    "enabled": true
+  }
+}
