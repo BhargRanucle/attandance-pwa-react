@@ -3,9 +3,6 @@
   "name": "Ranucle Attendance",
   "description": "An advanced Progressive Web App providing a seamless and native experience.",
   "id": "/",
-  "display_override": [
-    "window-controls-overlay"
-  ],
   "edge_side_panel": {},
   "prefer_related_applications": false,
   "icons": [
