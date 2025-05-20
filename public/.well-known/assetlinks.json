@@ -3,6 +3,6 @@
       "target": {
         "namespace": "android_app",
         "package_name": "app.vercel.attandance_pwa_react.twa",
-        "sha256_cert_fingerprints": ["D9:73:A0:90:E2:C0:22:85:9D:25:0D:23:08:37:93:8C:C8:64:9E:50:23:AA:96:77:B5:05:16:10:75:8F:FC:C6"]
+        "sha256_cert_fingerprints": ["70:33:A0:5A:39:73:40:2F:4C:AC:FD:8C:25:82:73:08:0F:DA:B6:05:F4:D1:3D:2E:BF:61:0D:A1:82:CB:E6:76"]
       }
     }]
