@@ -39,7 +39,7 @@ const Layout: React.FC<LayoutProps> = ({
                 </AvatarFallback>
               </Avatar>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48 border-app-purple/20 shadow-lg animate-fade-in">
+            <DropdownMenuContent align="end" className="w-48 border-app-purple/20 shadow-lg ">
               <DropdownMenuItem onClick={() => navigate("/profile")} className="hover:bg-app-purple-light/30 cursor-pointer">
                 My Profile
               </DropdownMenuItem>

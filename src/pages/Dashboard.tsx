@@ -38,7 +38,7 @@ const Dashboard = () => {
     <Layout title="Dashboard">
       <div className="space-y-6">
         {/* Today's Log Card */}
-        <div className="animate-fade-in">
+        <div className="">
           <Card className="overflow-hidden border-none shadow-lg">
             <div className="bg-gradient-to-r from-app-purple/80 to-app-blue/80 p-1"></div>
             <CardHeader className="bg-gradient-to-b from-app-purple-light/30 to-transparent pb-2">
@@ -89,7 +89,7 @@ const Dashboard = () => {
         </div>
 
         {/* Weekly Report Card */}
-        <div className="animate-fade-in" style={{ animationDelay: "0.1s" }}>
+        <div className="" style={{ animationDelay: "0.1s" }}>
           <Card className="overflow-hidden border-none shadow-lg">
             <div className="bg-gradient-to-r from-app-blue/80 to-app-purple/80 p-1"></div>
             <CardHeader className="bg-gradient-to-b from-app-light to-transparent pb-2">
@@ -131,7 +131,7 @@ const Dashboard = () => {
         </div>
 
         {/* Recent Logs Card */}
-        <div className="animate-fade-in" style={{ animationDelay: "0.2s" }}>
+        <div className="" style={{ animationDelay: "0.2s" }}>
           <Card className="overflow-hidden border-none shadow-lg">
             <div className="bg-gradient-to-r from-app-purple-dark/80 to-app-purple/80 p-1"></div>
             <CardHeader className="bg-gradient-to-b from-app-purple-light/30 to-transparent pb-2">

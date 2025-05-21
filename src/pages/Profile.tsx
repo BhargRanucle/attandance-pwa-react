@@ -54,7 +54,7 @@ const Profile = () => {
   return (
     <Layout title="My Profile">
       <div className="space-y-6">
-        <div className="animate-fade-in">
+        <div className="">
           <Card className="overflow-hidden border-none shadow-lg">
             <div className="bg-gradient-to-r from-app-purple to-app-blue p-1"></div>
             <CardHeader className="bg-gradient-to-b from-app-light to-transparent pb-2 text-center">

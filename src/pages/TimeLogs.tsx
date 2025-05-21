@@ -92,33 +92,34 @@ const TimeLogs = () => {
   //   }
   // };
 
-
   const getCurrentLocation = () => {
-  if (navigator.geolocation) {
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        setLatLong({
-          lat: position.coords.latitude,
-          long: position.coords.longitude,
-        });
-      },
-      (error) => {
-        if (error.code === error.PERMISSION_DENIED) {
-          alert("Location permission denied. Please enable it in browser settings.");
-        } else {
-          console.error("Error accessing location:", error.message);
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setLatLong({
+            lat: position.coords.latitude,
+            long: position.coords.longitude,
+          });
+        },
+        (error) => {
+          if (error.code === error.PERMISSION_DENIED) {
+            alert(
+              "Location permission denied. Please enable it in browser settings."
+            );
+          } else {
+            console.error("Error accessing location:", error.message);
+          }
         }
-      }
-    );
-  } else {
-    console.error("Geolocation is not supported by this browser.");
-  }
-};
+      );
+    } else {
+      console.error("Geolocation is not supported by this browser.");
+    }
+  };
   return (
     <Layout title="Time Logs">
       <div className="space-y-6">
         {/* Current Status Card */}
-        <div className="animate-fade-in">
+        <div className="">
           <Card className="overflow-hidden border-none shadow-lg">
             <div className="bg-gradient-to-r from-app-purple to-app-blue p-1"></div>
             <CardHeader className="bg-gradient-to-b from-app-purple-light/30 to-transparent pb-2">
@@ -193,8 +194,6 @@ const TimeLogs = () => {
                     )}
                   </>
                 )}
-
-                
               </div>
 
               {latLong?.lat && latLong?.long ? (
@@ -240,7 +239,7 @@ const TimeLogs = () => {
         </div>
 
         {/* Log History Card */}
-        <div className="animate-fade-in" style={{ animationDelay: "0.1s" }}>
+        <div className="" style={{ animationDelay: "0.1s" }}>
           <Card className="overflow-hidden border-none shadow-lg">
             <div className="bg-gradient-to-r from-app-blue to-app-purple p-1"></div>
             <CardHeader className="bg-gradient-to-b from-app-light to-transparent pb-2">
@@ -283,32 +282,32 @@ const TimeLogs = () => {
                     return (
                       <div
                         key={log.id}
-                        className="p-4 bg-gradient-to-br from-white to-app-light rounded-lg shadow-sm"
+                        className="p-4 bg-gradient-to-br from-white to-app-purple-light/20 rounded-lg shadow-sm"
                       >
                         <div className="flex justify-between items-center">
-                          <div className="flex items-center">
-                            <div className="w-10 h-10 bg-app-purple-light/40 rounded-full flex items-center justify-center mr-3">
-                              <Calendar size={18} className="text-app-purple" />
-                            </div>
-                            <div>
-                              <Badge
-                                variant="outline"
-                                className="mb-1 font-normal text-xs bg-app-purple/5 border-app-purple/20"
-                              >
-                                {format(new Date(log.date), "MMM d")}
-                              </Badge>
-                              <p className="font-medium">
-                                {workHours}h {workMinutes}m
-                              </p>
-                            </div>
+                          <div className="flex items-center gap-2">
+                            <Calendar
+                              size={16}
+                              className="text-app-purple-dark"
+                            />
+                            <p className="font-medium">
+                              {format(new Date(log.date), "EEE, MMM d")}
+                            </p>
                           </div>
-                          <div className="text-xs bg-app-blue/10 px-2 py-1 rounded-full text-app-blue">
-                            Break: {breakMinutes}m
+                          <div className="bg-app-purple/10 px-2 py-1 rounded-full">
+                            <p className="text-xs font-medium text-app-purple">
+                              {workHours}h {workMinutes}m
+                            </p>
                           </div>
                         </div>
-                        <div className="mt-2 text-sm text-muted-foreground border-t border-dashed border-app-purple/10 pt-2">
-                          {format(checkInTime, "h:mm a")} -{" "}
-                          {format(checkOutTime, "h:mm a")}
+                        <div className="mt-2 flex justify-between text-sm">
+                          <span className="text-muted-foreground">
+                            {format(checkInTime, "h:mm a")} -{" "}
+                            {format(checkOutTime, "h:mm a")}
+                          </span>
+                          <span className="text-muted-foreground">
+                            Break: {breakMinutes}m
+                          </span>
                         </div>
                       </div>
                     );

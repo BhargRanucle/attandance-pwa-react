@@ -71,7 +71,7 @@ const EmergencyLogs = () => {
     <Layout title="Emergency Logs">
       <div className="space-y-6">
         {/* Submit Emergency Log Card */}
-        <div className="animate-fade-in">
+        <div className="">
           <Card className="overflow-hidden border-none shadow-lg">
             <div className="bg-gradient-to-r from-app-red/80 to-app-purple/80 p-1"></div>
             <CardHeader className="bg-gradient-to-b from-app-light to-transparent pb-2">
@@ -146,7 +146,7 @@ const EmergencyLogs = () => {
         </div>
 
         {/* Emergency Log History Card */}
-        <div className="animate-fade-in" style={{ animationDelay: "0.1s" }}>
+        <div className="" style={{ animationDelay: "0.1s" }}>
           <Card className="overflow-hidden border-none shadow-lg">
             <div className="bg-gradient-to-r from-app-purple/80 to-app-red/80 p-1"></div>
             <CardHeader className="bg-gradient-to-b from-app-light to-transparent pb-2">
