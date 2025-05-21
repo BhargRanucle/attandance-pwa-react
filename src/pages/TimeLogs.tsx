@@ -52,46 +52,68 @@ const TimeLogs = () => {
   }
 
   const [latLong, setLatLong] = useState() as any;
+  // const getCurrentLocation = () => {
+  //   if (navigator.geolocation) {
+  //     navigator.geolocation.getCurrentPosition(
+  //       (position) => {
+  //         setLatLong({
+  //           lat: position.coords.latitude,
+  //           long: position.coords.longitude,
+  //         });
+  //       },
+  //       (error) => {
+  //         if (error.code === error.PERMISSION_DENIED) {
+  //           alert("Location permission is denied. Please enable.");
+  //         } else {
+  //           console.error("Error accessing location:", error.message);
+  //         }
+  //       }
+  //     );
+  //   } else {
+  //     console.error("Geolocation is not supported by this browser.");
+  //   }
+  // };
+
+  // const checkLocationPermission = async () => {
+  //   try {
+  //     const permissionStatus = await navigator.permissions.query({
+  //       name: "geolocation",
+  //     });
+
+  //     if (permissionStatus.state === "denied") {
+  //       alert(
+  //         "Location permission is denied. Please update your browser settings to enable it."
+  //       );
+  //     } else {
+  //       getCurrentLocation();
+  //     }
+  //   } catch (error) {
+  //     console.error("Error checking permissions:", error);
+  //   }
+  // };
+
+
   const getCurrentLocation = () => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          setLatLong({
-            lat: position.coords.latitude,
-            long: position.coords.longitude,
-          });
-        },
-        (error) => {
-          if (error.code === error.PERMISSION_DENIED) {
-            alert("Location permission is denied. Please enable.");
-          } else {
-            console.error("Error accessing location:", error.message);
-          }
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setLatLong({
+          lat: position.coords.latitude,
+          long: position.coords.longitude,
+        });
+      },
+      (error) => {
+        if (error.code === error.PERMISSION_DENIED) {
+          alert("Location permission denied. Please enable it in browser settings.");
+        } else {
+          console.error("Error accessing location:", error.message);
         }
-      );
-    } else {
-      console.error("Geolocation is not supported by this browser.");
-    }
-  };
-
-  const checkLocationPermission = async () => {
-    try {
-      const permissionStatus = await navigator.permissions.query({
-        name: "geolocation",
-      });
-
-      if (permissionStatus.state === "denied") {
-        alert(
-          "Location permission is denied. Please update your browser settings to enable it."
-        );
-      } else {
-        getCurrentLocation();
       }
-    } catch (error) {
-      console.error("Error checking permissions:", error);
-    }
-  };
-
+    );
+  } else {
+    console.error("Geolocation is not supported by this browser.");
+  }
+};
   return (
     <Layout title="Time Logs">
       <div className="space-y-6">
@@ -181,7 +203,7 @@ const TimeLogs = () => {
                 </div>
               ) : (
                 <Button
-                  onClick={checkLocationPermission}
+                  onClick={getCurrentLocation}
                   className="log-button bg-gradient-to-r from-app-purple to-app-blue hover:opacity-90 col-span-2 py-6 w-full mt-2"
                 >
                   Turn On Location
