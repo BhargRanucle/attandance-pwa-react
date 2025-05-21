@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Navigate } from "react-router-dom";
 import { format } from "date-fns";
@@ -32,24 +31,72 @@ const TimeLogs = () => {
     d.setDate(d.getDate() - 7);
     return d;
   });
-  
+
   const [endDate, setEndDate] = useState<Date>(() => new Date());
-  
+
   const handleDateRangeChange = (start: Date, end: Date) => {
     setStartDate(start);
     setEndDate(end);
   };
 
   const filteredLogs = getFilteredLogs(
-    startDate.toISOString().split('T')[0],
-    endDate.toISOString().split('T')[0]
-  ).filter(log => log.status === "completed")
-  .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    startDate.toISOString().split("T")[0],
+    endDate.toISOString().split("T")[0]
+  )
+    .filter((log) => log.status === "completed")
+    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
   // If not authenticated, redirect to login
   if (!isAuthenticated) {
     return <Navigate to="/" replace />;
   }
+
+  const [latLong, setLatLong] = useState<{ lat: number; long: number }>({
+    lat: 0,
+    long: 0,
+  });
+  const getCurrentLocation = () => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          setLatLong({
+            lat: position.coords.latitude,
+            long: position.coords.longitude,
+          });
+        },
+        (error) => {
+          if (error.code === error.PERMISSION_DENIED) {
+            alert(
+              "Location permission is denied. Please enable."
+            );
+          } else {
+            console.error("Error accessing location:", error.message);
+          }
+        }
+      );
+    } else {
+      console.error("Geolocation is not supported by this browser.");
+    }
+  };
+
+  const checkLocationPermission = async () => {
+    try {
+      const permissionStatus = await navigator.permissions.query({
+        name: "geolocation",
+      });
+
+      if (permissionStatus.state === "denied") {
+        alert(
+          "Location permission is denied. Please update your browser settings to enable it."
+        );
+      } else {
+        getCurrentLocation();
+      }
+    } catch (error) {
+      console.error("Error checking permissions:", error);
+    }
+  };
+
 
   return (
     <Layout title="Time Logs">
@@ -61,7 +108,9 @@ const TimeLogs = () => {
             <CardHeader className="bg-gradient-to-b from-app-purple-light/30 to-transparent pb-2">
               <div className="flex items-center gap-2">
                 <Clock className="text-app-purple" size={20} />
-                <CardTitle className="text-lg font-medium">Current Status</CardTitle>
+                <CardTitle className="text-lg font-medium">
+                  Current Status
+                </CardTitle>
               </div>
             </CardHeader>
             <CardContent className="p-4">
@@ -128,6 +177,15 @@ const TimeLogs = () => {
                     )}
                   </>
                 )}
+
+                <Button
+                  onClick={checkLocationPermission}
+                  className="log-button bg-gradient-to-r from-app-purple to-app-blue hover:opacity-90 col-span-2 py-6"
+                >
+                  Turn On Location
+                </Button>
+
+                
               </div>
 
               {isCheckedIn && currentLog && (
@@ -135,7 +193,9 @@ const TimeLogs = () => {
                   <div className="flex justify-between items-center">
                     <div className="flex items-center gap-2">
                       <Clock size={16} className="text-app-purple" />
-                      <p className="text-sm text-app-purple-dark font-medium">Check-in time</p>
+                      <p className="text-sm text-app-purple-dark font-medium">
+                        Check-in time
+                      </p>
                     </div>
                     <p className="font-medium">
                       {format(new Date(currentLog.checkInTime), "h:mm a")}
@@ -144,7 +204,9 @@ const TimeLogs = () => {
                   <div className="flex justify-between items-center mt-2">
                     <div className="flex items-center gap-2">
                       <Pause size={16} className="text-app-purple" />
-                      <p className="text-sm text-app-purple-dark font-medium">Break time</p>
+                      <p className="text-sm text-app-purple-dark font-medium">
+                        Break time
+                      </p>
                     </div>
                     <p className="font-medium">
                       {Math.floor(currentLog.totalBreakTime / 60)} min
@@ -163,12 +225,16 @@ const TimeLogs = () => {
             <CardHeader className="bg-gradient-to-b from-app-light to-transparent pb-2">
               <div className="flex items-center gap-2">
                 <History className="text-app-blue" size={20} />
-                <CardTitle className="text-lg font-medium">Log History</CardTitle>
+                <CardTitle className="text-lg font-medium">
+                  Log History
+                </CardTitle>
               </div>
             </CardHeader>
             <CardContent className="p-4">
               <div className="mb-4">
-                <p className="text-sm text-muted-foreground mb-2">Select date range</p>
+                <p className="text-sm text-muted-foreground mb-2">
+                  Select date range
+                </p>
                 <DateRangePicker
                   startDate={startDate}
                   endDate={endDate}
@@ -181,16 +247,21 @@ const TimeLogs = () => {
                   filteredLogs.map((log) => {
                     // Calculate total work time (excluding breaks)
                     const checkInTime = new Date(log.checkInTime);
-                    const checkOutTime = log.checkOutTime ? new Date(log.checkOutTime) : new Date();
-                    const totalSeconds = (checkOutTime.getTime() - checkInTime.getTime()) / 1000;
+                    const checkOutTime = log.checkOutTime
+                      ? new Date(log.checkOutTime)
+                      : new Date();
+                    const totalSeconds =
+                      (checkOutTime.getTime() - checkInTime.getTime()) / 1000;
                     const workTimeSeconds = totalSeconds - log.totalBreakTime;
                     const workHours = Math.floor(workTimeSeconds / 3600);
-                    const workMinutes = Math.floor((workTimeSeconds % 3600) / 60);
+                    const workMinutes = Math.floor(
+                      (workTimeSeconds % 3600) / 60
+                    );
                     const breakMinutes = Math.floor(log.totalBreakTime / 60);
-                    
+
                     return (
-                      <div 
-                        key={log.id} 
+                      <div
+                        key={log.id}
                         className="p-4 bg-gradient-to-br from-white to-app-light rounded-lg shadow-sm"
                       >
                         <div className="flex justify-between items-center">
@@ -199,8 +270,8 @@ const TimeLogs = () => {
                               <Calendar size={18} className="text-app-purple" />
                             </div>
                             <div>
-                              <Badge 
-                                variant="outline" 
+                              <Badge
+                                variant="outline"
                                 className="mb-1 font-normal text-xs bg-app-purple/5 border-app-purple/20"
                               >
                                 {format(new Date(log.date), "MMM d")}
@@ -215,15 +286,21 @@ const TimeLogs = () => {
                           </div>
                         </div>
                         <div className="mt-2 text-sm text-muted-foreground border-t border-dashed border-app-purple/10 pt-2">
-                          {format(checkInTime, "h:mm a")} - {format(checkOutTime, "h:mm a")}
+                          {format(checkInTime, "h:mm a")} -{" "}
+                          {format(checkOutTime, "h:mm a")}
                         </div>
                       </div>
                     );
                   })
                 ) : (
                   <div className="text-center py-8 bg-app-light/50 rounded-lg">
-                    <Clock size={36} className="text-app-gray/40 mx-auto mb-2" />
-                    <p className="text-muted-foreground">No logs found in the selected date range.</p>
+                    <Clock
+                      size={36}
+                      className="text-app-gray/40 mx-auto mb-2"
+                    />
+                    <p className="text-muted-foreground">
+                      No logs found in the selected date range.
+                    </p>
                   </div>
                 )}
               </div>
