@@ -51,10 +51,7 @@ const TimeLogs = () => {
     return <Navigate to="/" replace />;
   }
 
-  const [latLong, setLatLong] = useState<{ lat: number; long: number }>({
-    lat: 0,
-    long: 0,
-  });
+  const [latLong, setLatLong] = useState() as any;
   const getCurrentLocation = () => {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
@@ -66,9 +63,7 @@ const TimeLogs = () => {
         },
         (error) => {
           if (error.code === error.PERMISSION_DENIED) {
-            alert(
-              "Location permission is denied. Please enable."
-            );
+            alert("Location permission is denied. Please enable.");
           } else {
             console.error("Error accessing location:", error.message);
           }
@@ -96,7 +91,6 @@ const TimeLogs = () => {
       console.error("Error checking permissions:", error);
     }
   };
-
 
   return (
     <Layout title="Time Logs">
@@ -178,16 +172,21 @@ const TimeLogs = () => {
                   </>
                 )}
 
-                <Button
-                  onClick={checkLocationPermission}
-                  className="log-button bg-gradient-to-r from-app-purple to-app-blue hover:opacity-90 col-span-2 py-6"
-                >
-                  Turn On Location
-                </Button>
-
                 
               </div>
 
+              {latLong?.lat && latLong?.long ? (
+                <div className="text-xs text-center bg-app-blue/10 px-2 py-1 rounded-full text-app-blue w-full mt-2">
+                  {`Latitude: ${latLong.lat}, Longitude: ${latLong.long}`}
+                </div>
+              ) : (
+                <Button
+                  onClick={checkLocationPermission}
+                  className="log-button bg-gradient-to-r from-app-purple to-app-blue hover:opacity-90 col-span-2 py-6 w-full mt-2"
+                >
+                  Turn On Location
+                </Button>
+              )}
               {isCheckedIn && currentLog && (
                 <div className="mt-6 p-4 bg-app-purple-light/20 rounded-lg shadow-sm">
                   <div className="flex justify-between items-center">
