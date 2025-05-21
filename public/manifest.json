@@ -5,6 +5,7 @@
   "id": "/",
   "edge_side_panel": {},
   "prefer_related_applications": false,
+  "permissions": ["geolocation"],
   "icons": [
     {
       "src": "favicon.ico",
