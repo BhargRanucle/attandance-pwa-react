@@ -44,56 +44,109 @@ const DateRangePicker = ({
   };
 
   return (
-    <div className="items-center">
-      <div className="">
-        <Popover open={isStartCalendarOpen} onOpenChange={setIsStartCalendarOpen}>
-          <PopoverTrigger asChild>
-            <Button
-              variant="outline"
-              className={cn(
-                "w-full justify-start text-left font-normal",
-                !startDate && "text-muted-foreground"
-              )}
-            >
-              <CalendarIcon className="mr-2 h-4 w-4" />
-              {startDate ? format(startDate, "PPP") : "Pick a date"}
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-auto p-0" align="center">
-            <Calendar
-              mode="single"
-              selected={startDate}
-              onSelect={handleStartDateSelect}
-              initialFocus
-            />
-          </PopoverContent>
-        </Popover>
-      </div>
-      <div className="mt-2">
-        <Popover open={isEndCalendarOpen} onOpenChange={setIsEndCalendarOpen}>
-          <PopoverTrigger asChild>
-            <Button
-              variant="outline"
-              className={cn(
-                "w-full justify-start text-left font-normal",
-                !endDate && "text-muted-foreground"
-              )}
-            >
-              <CalendarIcon className="mr-2 h-4 w-4" />
-              {endDate ? format(endDate, "PPP") : "Pick a date"}
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-auto p-0" align="center">
-            <Calendar
-              mode="single"
-              selected={endDate}
-              onSelect={handleEndDateSelect}
-              initialFocus
-            />
-          </PopoverContent>
-        </Popover>
-      </div>
-    </div>
+    // <div className="items-center">
+    //   <div className="">
+    //     <Popover open={isStartCalendarOpen} onOpenChange={setIsStartCalendarOpen}>
+    //       <PopoverTrigger asChild>
+    //         <Button
+    //           variant="outline"
+    //           className={cn(
+    //             "w-full justify-start text-left font-normal",
+    //             !startDate && "text-muted-foreground"
+    //           )}
+    //         >
+    //           <CalendarIcon className="mr-2 h-4 w-4" />
+    //           {startDate ? format(startDate, "PPP") : "Pick a date"}
+    //         </Button>
+    //       </PopoverTrigger>
+    //       <PopoverContent className="w-auto p-0" align="center">
+    //         <Calendar
+    //           mode="single"
+    //           selected={startDate}
+    //           onSelect={handleStartDateSelect}
+    //           initialFocus
+    //         />
+    //       </PopoverContent>
+    //     </Popover>
+    //   </div>
+    //   <div className="mt-2">
+    //     <Popover open={isEndCalendarOpen} onOpenChange={setIsEndCalendarOpen}>
+    //       <PopoverTrigger asChild>
+    //         <Button
+    //           variant="outline"
+    //           className={cn(
+    //             "w-full justify-start text-left font-normal",
+    //             !endDate && "text-muted-foreground"
+    //           )}
+    //         >
+    //           <CalendarIcon className="mr-2 h-4 w-4" />
+    //           {endDate ? format(endDate, "PPP") : "Pick a date"}
+    //         </Button>
+    //       </PopoverTrigger>
+    //       <PopoverContent className="w-auto p-0" align="center">
+    //         <Calendar
+    //           mode="single"
+    //           selected={endDate}
+    //           onSelect={handleEndDateSelect}
+    //           initialFocus
+    //         />
+    //       </PopoverContent>
+    //     </Popover>
+    //   </div>
+    // </div>
+
+    <div className="grid grid-cols-6 gap-2 items-center">
+  <div className="col-span-3">
+    <Popover open={isStartCalendarOpen} onOpenChange={setIsStartCalendarOpen}>
+      <PopoverTrigger asChild>
+        <Button
+          variant="outline"
+          className={cn(
+            "w-full justify-start text-left font-normal",
+            !startDate && "text-muted-foreground"
+          )}
+        >
+          <CalendarIcon className="mr-0 h-4 w-4" />
+          {startDate ? format(startDate, "PPP") : "Pick a date"}
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-auto p-0" align="center">
+        <Calendar
+          mode="single"
+          selected={startDate}
+          onSelect={handleStartDateSelect}
+          initialFocus
+        />
+      </PopoverContent>
+    </Popover>
+  </div>
+  <div className="col-span-3">
+    <Popover open={isEndCalendarOpen} onOpenChange={setIsEndCalendarOpen}>
+      <PopoverTrigger asChild>
+        <Button
+          variant="outline"
+          className={cn(
+            "w-full justify-start text-left font-normal",
+            !endDate && "text-muted-foreground"
+          )}
+        >
+          <CalendarIcon className="mr-0 h-4 w-4" />
+          {endDate ? format(endDate, "PPP") : "Pick a date"}
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-auto p-0" align="center">
+        <Calendar
+          mode="single"
+          selected={endDate}
+          onSelect={handleEndDateSelect}
+          initialFocus
+        />
+      </PopoverContent>
+    </Popover>
+  </div>
+</div>
+
+
   );
 };
 

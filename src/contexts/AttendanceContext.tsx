@@ -20,7 +20,6 @@ interface EmergencyLog {
   date: string;
   reason: string;
   status: "pending" | "approved" | "rejected";
-  hours: number;
 }
 
 interface Break {
@@ -44,7 +43,7 @@ interface AttendanceContextType {
   checkOut: () => void;
   startBreak: () => void;
   endBreak: () => void;
-  submitEmergencyLog: (date: string, reason: string, hours: number) => void;
+  submitEmergencyLog: (date: string, reason: string, image?: string) => void;
   getWeeklySummary: () => {
     totalHours: number;
     presentDays: number;
@@ -181,7 +180,6 @@ export const AttendanceProvider: React.FC<{ children: React.ReactNode }> = ({ ch
             date: "2023-05-15",
             reason: "Medical appointment",
             status: "approved",
-            hours: 2,
           },
           {
             id: "e2",
@@ -189,7 +187,6 @@ export const AttendanceProvider: React.FC<{ children: React.ReactNode }> = ({ ch
             date: "2023-05-10",
             reason: "Family emergency",
             status: "approved",
-            hours: 4,
           }
         ];
         
@@ -407,7 +404,7 @@ export const AttendanceProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   };
 
   // Submit emergency log function
-  const submitEmergencyLog = (date: string, reason: string, hours: number) => {
+  const submitEmergencyLog = (date: string, reason: string, image?: string) => {
     if (!user) return;
     
     const newLog: EmergencyLog = {
@@ -416,7 +413,7 @@ export const AttendanceProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       date,
       reason,
       status: "pending",
-      hours,
+      // ...(image ? { image } : {})
     };
     
     setEmergencyLogs(prev => [...prev, newLog]);

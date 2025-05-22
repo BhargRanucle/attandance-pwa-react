@@ -122,7 +122,7 @@ const TimeLogs = () => {
         <div className="">
           <Card className="overflow-hidden border-none shadow-lg">
             <div className="bg-gradient-to-r from-app-purple to-app-blue p-1"></div>
-            <CardHeader className="bg-gradient-to-b from-app-purple-light/30 to-transparent pb-2">
+            <CardHeader className="bg-gradient-to-b from-app-purple-light/30 to-transparent pb-2 px-4">
               <div className="flex items-center gap-2">
                 <Clock className="text-app-purple" size={20} />
                 <CardTitle className="text-lg font-medium">
@@ -242,7 +242,7 @@ const TimeLogs = () => {
         <div className="" style={{ animationDelay: "0.1s" }}>
           <Card className="overflow-hidden border-none shadow-lg">
             <div className="bg-gradient-to-r from-app-blue to-app-purple p-1"></div>
-            <CardHeader className="bg-gradient-to-b from-app-light to-transparent pb-2">
+            <CardHeader className="bg-gradient-to-b from-app-light to-transparent pb-2 px-4">
               <div className="flex items-center gap-2">
                 <History className="text-app-blue" size={20} />
                 <CardTitle className="text-lg font-medium">
@@ -282,7 +282,7 @@ const TimeLogs = () => {
                     return (
                       <div
                         key={log.id}
-                        className="p-4 bg-gradient-to-br from-white to-app-purple-light/20 rounded-lg shadow-sm"
+                        className="p-4 bg-gradient-to-br from-white to-app-purple-light/95 rounded-lg shadow-sm"
                       >
                         <div className="flex justify-between items-center">
                           <div className="flex items-center gap-2">
