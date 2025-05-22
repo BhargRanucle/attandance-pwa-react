@@ -156,7 +156,7 @@ const Dashboard = () => {
                     return (
                       <div 
                         key={log.id} 
-                        className="p-4 bg-gradient-to-br from-white to-app-purple-light/20 rounded-lg shadow-sm"
+                        className="p-4 bg-gradient-to-br from-white to-app-purple-light/95 rounded-lg shadow-sm"
                       >
                         <div className="flex justify-between items-center">
                           <div className="flex items-center gap-2">
