@@ -52,16 +52,17 @@ const Layout: React.FC<LayoutProps> = ({
       </header>
 
       {/* Main content */}
-      <main className="flex-1 p-4 md:p-6 lg:p-8 overflow-auto bg-gradient-to-b from-white to-app-purple-light/10">
+      <main className="flex-1 p-4 md:p-6 lg:p-8 overflow-auto bg-gradient-to-b from-white to-app-purple-light/10 w-full">
         <div className="">
-          <div className="max-w-lg md:max-w-2xl lg:max-w-4xl">
+          <div className="">
             {children}
           </div>
         </div>
       </main>
 
       {/* Bottom navigation - only shown on mobile */}
-      {showNav && isMobile && <BottomNav />}
+      {/* {showNav && isMobile && <BottomNav />} */}
+      <BottomNav />
     </div>
   );
 };

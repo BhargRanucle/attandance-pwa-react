@@ -117,7 +117,7 @@ const TimeLogs = () => {
   };
   return (
     <Layout title="Time Logs">
-      <div className="space-y-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-2 gap-4">
         {/* Current Status Card */}
         <div className="">
           <Card className="overflow-hidden border-none shadow-lg">

@@ -55,7 +55,7 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
         }`}
         onClick={!previewUrl ? triggerFileSelection : undefined}
       >
-        <AspectRatio ratio={1 / 0.5} className="overflow-hidden bg-muted">
+        <div className="overflow-hidden bg-muted h-[200px]">
           {previewUrl ? (
             <>
               <img
@@ -100,7 +100,7 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
               <p className="mt-2 text-sm text-muted-foreground">Click Here To Upload Image</p>
             </div>
           )}
-        </AspectRatio>
+        </div>
       </div>
 
       <input
