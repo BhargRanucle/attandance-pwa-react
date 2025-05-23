@@ -36,7 +36,7 @@ const Dashboard = () => {
 
   return (
     <Layout title="Dashboard">
-      <div className="space-y-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-2 gap-4">
         {/* Today's Log Card */}
         <div className="">
           <Card className="overflow-hidden border-none shadow-lg">
@@ -75,7 +75,7 @@ const Dashboard = () => {
                   </div>
                 </div>
               ) : (
-                <div className="py-6 text-center">
+                <div className="py-4 text-center">
                   <p className="text-muted-foreground">
                     You haven't checked in today.
                   </p>
@@ -99,7 +99,7 @@ const Dashboard = () => {
               </div>
             </CardHeader>
             <CardContent className="p-5">
-              <div className="grid grid-cols-2 gap-6">
+              <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-4 gap-6">
                 <div className="text-center p-3 bg-gradient-to-br from-white to-app-light rounded-lg">
                   <p className="text-muted-foreground text-sm">Total Hours</p>
                   <p className="text-2xl font-semibold mt-1 text-app-purple">
@@ -130,8 +130,11 @@ const Dashboard = () => {
           </Card>
         </div>
 
-        {/* Recent Logs Card */}
-        <div className="" style={{ animationDelay: "0.2s" }}>
+        
+      </div>
+
+      {/* Recent Logs Card */}
+        <div className="mt-4" style={{ animationDelay: "0.2s" }}>
           <Card className="overflow-hidden border-none shadow-lg">
             <div className="bg-gradient-to-r from-app-purple-dark/80 to-app-purple/80 p-1"></div>
             <CardHeader className="bg-gradient-to-b from-app-purple-light/30 to-transparent pb-2">
@@ -142,7 +145,7 @@ const Dashboard = () => {
             </CardHeader>
             <CardContent className="p-5">
               {recentLogs.length > 0 ? (
-                <div className="space-y-4">
+                <div className="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-3 lg:grid-cols-3 gap-4">
                   {recentLogs.map((log) => {
                     // Calculate total work time (excluding breaks)
                     const checkInTime = new Date(log.checkInTime);
@@ -184,14 +187,13 @@ const Dashboard = () => {
                   })}
                 </div>
               ) : (
-                <div className="py-6 text-center">
+                <div className="py-4 text-center">
                   <p className="text-muted-foreground">No recent logs found.</p>
                 </div>
               )}
             </CardContent>
           </Card>
         </div>
-      </div>
     </Layout>
   );
 };
