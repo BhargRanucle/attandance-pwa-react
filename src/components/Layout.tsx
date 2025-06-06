@@ -36,7 +36,7 @@ const Layout: React.FC<LayoutProps> = ({
               <Avatar className="h-9 w-9 transition-colors">
                 <AvatarImage src={user?.profilePicture || ""} />
                 <AvatarFallback className="bg-gradient-to-r from-app-purple to-app-purple-dark text-white border-2 border-app-white">
-                  {user?.username?.charAt(0).toUpperCase() || "U"}
+                  {user?.name?.charAt(0).toUpperCase() || "U"}
                 </AvatarFallback>
               </Avatar>
             </DropdownMenuTrigger>

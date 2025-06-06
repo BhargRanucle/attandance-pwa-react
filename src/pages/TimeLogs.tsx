@@ -1,120 +1,60 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Navigate } from "react-router-dom";
 import { format } from "date-fns";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import DateRangePicker from "@/components/DateRangePicker";
-import TimeDisplay from "@/components/TimeDisplay";
-import Layout from "@/components/Layout";
+import { Clock, Calendar, Pause, LogOut, History, AlarmClock } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAttendance } from "@/contexts/AttendanceContext";
-import { Clock, Calendar, Play, Pause, LogOut, History, AlarmClock } from "lucide-react";
+import Layout from "@/components/Layout";
+import DateRangePicker from "@/components/DateRangePicker";
+import TimeDisplay from "@/components/TimeDisplay";
 
 const TimeLogs = () => {
-  const { isAuthenticated } = useAuth();
+  const { user } = useAuth();
   const {
     isCheckedIn,
-    isOnBreak,
     elapsedTime,
-    breakTime,
-    currentLog,
     checkIn,
     checkOut,
-    startBreak,
-    endBreak,
     getFilteredLogs,
+    totalBreakTimeToday,
+    earliestCheckInTime,
+    isLoading,
+    fetchRangeLogs,
+    dateFilteredTimeLogs,
+    rangeStart,
+    rangeEnd,
+    setRange,
+    locationBlocked,
+    requestLocationPermission,
   } = useAttendance();
 
   const [startDate, setStartDate] = useState<Date>(() => {
     const d = new Date();
-    d.setDate(d.getDate() - 7);
+    d.setDate(d.getDate() - 5);
     return d;
   });
 
   const [endDate, setEndDate] = useState<Date>(() => new Date());
 
   const handleDateRangeChange = (start: Date, end: Date) => {
-    setStartDate(start);
-    setEndDate(end);
+    const s = start.toISOString().split("T")[0];
+    const e = end.toISOString().split("T")[0];
+    setRange(s, e);
+    fetchRangeLogs(s, e);
   };
 
-  const filteredLogs = getFilteredLogs(
-    startDate.toISOString().split("T")[0],
-    endDate.toISOString().split("T")[0]
-  )
-    .filter((log) => log.status === "completed")
-    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  useEffect(() => {
+    const formattedStart = startDate.toISOString().split("T")[0];
+    const formattedEnd = endDate.toISOString().split("T")[0];
+    fetchRangeLogs(formattedStart, formattedEnd);
+  }, []);
 
-  // If not authenticated, redirect to login
-  if (!isAuthenticated) {
+  if (!user) {
     return <Navigate to="/" replace />;
   }
 
-  const [latLong, setLatLong] = useState() as any;
-  // const getCurrentLocation = () => {
-  //   if (navigator.geolocation) {
-  //     navigator.geolocation.getCurrentPosition(
-  //       (position) => {
-  //         setLatLong({
-  //           lat: position.coords.latitude,
-  //           long: position.coords.longitude,
-  //         });
-  //       },
-  //       (error) => {
-  //         if (error.code === error.PERMISSION_DENIED) {
-  //           alert("Location permission is denied. Please enable.");
-  //         } else {
-  //           console.error("Error accessing location:", error.message);
-  //         }
-  //       }
-  //     );
-  //   } else {
-  //     console.error("Geolocation is not supported by this browser.");
-  //   }
-  // };
-
-  // const checkLocationPermission = async () => {
-  //   try {
-  //     const permissionStatus = await navigator.permissions.query({
-  //       name: "geolocation",
-  //     });
-
-  //     if (permissionStatus.state === "denied") {
-  //       alert(
-  //         "Location permission is denied. Please update your browser settings to enable it."
-  //       );
-  //     } else {
-  //       getCurrentLocation();
-  //     }
-  //   } catch (error) {
-  //     console.error("Error checking permissions:", error);
-  //   }
-  // };
-
-  const getCurrentLocation = () => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          setLatLong({
-            lat: position.coords.latitude,
-            long: position.coords.longitude,
-          });
-        },
-        (error) => {
-          if (error.code === error.PERMISSION_DENIED) {
-            alert(
-              "Location permission denied. Please enable it in browser settings."
-            );
-          } else {
-            console.error("Error accessing location:", error.message);
-          }
-        }
-      );
-    } else {
-      console.error("Geolocation is not supported by this browser.");
-    }
-  };
   return (
     <Layout title="Time Logs">
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-2 gap-4">
@@ -132,14 +72,19 @@ const TimeLogs = () => {
             </CardHeader>
             <CardContent className="p-4">
               <div className="mb-6 text-center py-2">
-                {isCheckedIn ? (
+                {isLoading ? (
+                  <div className="py-6">
+                    <div className="w-24 h-24 mx-auto bg-app-light rounded-full flex items-center justify-center shadow-inner">
+                      <Clock size={48} className="text-app-gray animate-pulse" />
+                    </div>
+                    <p className="text-muted-foreground mt-4">Loading time data...</p>
+                  </div>
+                ) : isCheckedIn ? (
                   <>
-                    <p className="text-sm text-muted-foreground mb-5">
-                      {isOnBreak ? "On Break" : "Working Time"}
-                    </p>
-                    <div className="bg-[#222222]/10 text-black p-10 rounded-full inline-block shadow-inner">
+                    <p className="text-sm text-muted-foreground mb-1">Working Time</p>
+                    <div className="bg-gradient-to-br from-app-purple-light to-white p-5 rounded-full inline-block shadow-inner">
                       <TimeDisplay
-                        seconds={isOnBreak ? breakTime : elapsedTime}
+                        seconds={elapsedTime}
                         pulsing={true}
                         size="lg"
                       />
@@ -167,73 +112,41 @@ const TimeLogs = () => {
                     Check In
                   </Button>
                 ) : (
-                  <>
-                    <Button
-                      onClick={checkOut}
-                      className="log-button font-bold bg-gradient-to-t from-app-red to-app-red-dark py-6"
-                    >
-                      <LogOut className="mr-0" size={18} />
-                      Check Out
-                    </Button>
-                    {!isOnBreak ? (
-                      <Button
-                        onClick={startBreak}
-                        className="log-button font-bold bg-gradient-to-b from-app-blue to-app-purple-dark py-6"
-                      >
-                        <Pause className="mr-0" size={18} />
-                        Start Break
-                      </Button>
-                    ) : (
-                      <Button
-                        onClick={endBreak}
-                        className="log-button font-bold bg-gradient-to-b from-app-blue to-app-purple-dark py-6"
-                      >
-                        <Play className="mr-0" size={18} />
-                        End Break
-                      </Button>
-                    )}
-                  </>
+                  <Button
+                    onClick={checkOut}
+                    className="log-button bg-gradient-to-r from-app-red/90 to-app-red hover:opacity-90 py-4 col-span-2"
+                  >
+                    <LogOut className="mr-2" size={18} />
+                    Check Out
+                  </Button>
                 )}
               </div>
-
-              {/* {latLong?.lat && latLong?.long ? (
-                <div className="text-xs text-center bg-app-blue/10 px-2 py-1 rounded-full text-app-blue w-full mt-2">
-                  {`Latitude: ${latLong.lat}, Longitude: ${latLong.long}`}
-                </div>
-              ) : (
-                <Button
-                  onClick={getCurrentLocation}
-                  className="log-button bg-gradient-to-r from-app-purple to-app-blue col-span-2 py-6 w-full mt-2"
-                >
-                  Turn On Location
-                </Button>
-              )} */}
-              {isCheckedIn && currentLog && (
-                <div className="mt-6">
-                  <div className="flex justify-between items-center">
-                    <div className="flex items-center gap-2">
-                      {/* <Clock size={16} className="text-app-purple" /> */}
-                      <p className="text-[#222222]">
-                        Check-in time
-                      </p>
-                    </div>
-                    <p className="text-md font-semibold">
-                      {format(new Date(currentLog.checkInTime), "h:mm a")}
+              <div className="mt-6 p-4 bg-app-purple-light/20 rounded-lg shadow-sm">
+                <div className="flex justify-between items-center">
+                  <div className="flex items-center gap-2">
+                    <Clock size={16} className="text-app-purple" />
+                    <p className="text-sm text-app-purple-dark font-medium">
+                      Check-in time
                     </p>
                   </div>
-                  <div className="flex justify-between items-center mt-2">
-                    <div className="flex items-center gap-2">
-                      {/* <Pause size={16} className="text-app-purple" /> */}
-                      <p className="text-[#222222]">
-                        Break time
-                      </p>
-                    </div>
-                    <p className="text-md font-semibold">
-                      {Math.floor(currentLog.totalBreakTime / 60)} min
+                  <p className="font-medium">
+                    {earliestCheckInTime ? format(earliestCheckInTime, "h:mm a") : "--:--"}
+                  </p>
+                </div>
+                <div className="flex justify-between items-center mt-2">
+                  <div className="flex items-center gap-2">
+                    <Pause size={16} className="text-app-purple" />
+                    <p className="text-sm text-app-purple-dark font-medium">
+                      Break time
                     </p>
                   </div>
+                  <p className="font-medium">
+                    {totalBreakTimeToday
+                      ? `${Math.floor(totalBreakTimeToday / 3600)}h ${Math.floor((totalBreakTimeToday % 3600) / 60)}m`
+                      : "0h 0m"}
+                  </p>
                 </div>
-              )}
+              </div>
             </CardContent>
           </Card>
         </div>
@@ -256,30 +169,23 @@ const TimeLogs = () => {
                   Select date range
                 </p>
                 <DateRangePicker
-                  startDate={startDate}
-                  endDate={endDate}
+                  startDate={rangeStart ? new Date(rangeStart) : undefined}
+                  endDate={rangeEnd ? new Date(rangeEnd) : undefined}
                   onDateChange={handleDateRangeChange}
                   className=""
                 />
               </div>
 
               <div className="space-y-3 mt-6">
-                {filteredLogs.length > 0 ? (
-                  filteredLogs.map((log) => {
-                    // Calculate total work time (excluding breaks)
-                    const checkInTime = new Date(log.checkInTime);
-                    const checkOutTime = log.checkOutTime
-                      ? new Date(log.checkOutTime)
-                      : new Date();
-                    const totalSeconds =
-                      (checkOutTime.getTime() - checkInTime.getTime()) / 1000;
-                    const workTimeSeconds = totalSeconds - log.totalBreakTime;
+                {dateFilteredTimeLogs.length > 0 ? (
+                  dateFilteredTimeLogs.map((log) => {
+                    const { checkInTime, checkOutTime, breakTime, totalWorkSeconds } = log;
+                    const workTimeSeconds = totalWorkSeconds;
                     const workHours = Math.floor(workTimeSeconds / 3600);
-                    const workMinutes = Math.floor(
-                      (workTimeSeconds % 3600) / 60
-                    );
-                    const breakMinutes = Math.floor(log.totalBreakTime / 60);
-
+                    const workMinutes = Math.floor((workTimeSeconds % 3600) / 60);
+                    const breakHours = Math.floor(breakTime / 3600);
+                    const breakMinutes = Math.floor((breakTime % 3600) / 60);
+                    const formattedBreakTime = `${breakHours}h ${breakMinutes}m`;
                     return (
                       <div
                         key={log.id}
@@ -302,12 +208,11 @@ const TimeLogs = () => {
                           </div>
                         </div>
                         <div className="mt-2 flex justify-between text-sm">
-                          <span className="text-[#222222]">
-                            {format(checkInTime, "h:mm a")} -{" "}
-                            {format(checkOutTime, "h:mm a")}
+                          <span className="text-muted-foreground">
+                            {checkInTime ? format(checkInTime, "h:mm a") : "--:--"} - {checkOutTime ? format(checkOutTime, "h:mm a") : "--:--"}
                           </span>
-                          <span className="text-[#222222]">
-                            Break: {breakMinutes}m
+                          <span className="text-muted-foreground">
+                            Break: {formattedBreakTime}
                           </span>
                         </div>
                       </div>
@@ -315,10 +220,7 @@ const TimeLogs = () => {
                   })
                 ) : (
                   <div className="text-center py-8 bg-app-light/50 rounded-lg">
-                    <Clock
-                      size={36}
-                      className="text-app-gray/40 mx-auto mb-2"
-                    />
+                    <Clock size={36} className="text-app-gray/40 mx-auto mb-2" />
                     <p className="text-muted-foreground">
                       No logs found in the selected date range.
                     </p>
@@ -329,6 +231,34 @@ const TimeLogs = () => {
           </Card>
         </div>
       </div>
+      {locationBlocked && (
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded shadow-md text-center max-w-md">
+            <h2 className="text-xl font-semibold mb-4">
+              Location access required
+            </h2>
+
+            <p className="mb-4">
+              We need your device location to complete check-in / check-out.
+            </p>
+
+            <Button
+              className="w-full mb-3 bg-app-blue text-white"
+              onClick={requestLocationPermission}
+            >
+              Allow location
+            </Button>
+
+            <p className="text-sm text-muted-foreground">
+              If you don’t see the browser prompt, enable location manually:
+              <br />
+              • Chrome: <kbd>Settings › Privacy & Security › Site Settings › Location</kbd>
+              <br />
+              • Safari (iOS): <kbd>Settings › Privacy › Location Services › Safari</kbd>
+            </p>
+          </div>
+        </div>
+      )}
     </Layout>
   );
 };

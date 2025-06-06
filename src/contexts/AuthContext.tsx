@@ -1,32 +1,35 @@
-
-import React, { createContext, useContext, useState, useEffect } from "react";
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import React, { createContext, useContext, useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/components/ui/use-toast";
+import axios from "axios";
 
-// Define types for our context
+const API_URL = import.meta.env.VITE_BACKEND_APP_URL;
+
 interface User {
   id: string;
-  username: string;
   phone: string;
   email?: string;
+  name?: string;
+  uuid?: string;
   department?: string;
   address?: string;
   profilePicture?: string;
+  token: string;
 }
 
 interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
   isLoading: boolean;
-  login: (username: string, phone: string) => Promise<boolean>;
-  register: (username: string, phone: string) => Promise<boolean>;
+  login: (phone: string) => Promise<boolean>;
   logout: () => void;
   verifyOtp: (otp: string) => Promise<boolean>;
   updateProfile: (userData: Partial<User>) => void;
   pendingPhone: string | null;
-  pendingUsername: string | null;
   setPendingPhone: (phone: string | null) => void;
-  setPendingUsername: (username: string | null) => void;
+  verifyToken: () => Promise<boolean>;
+  refreshToken: () => Promise<boolean>;
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -34,174 +37,170 @@ const AuthContext = createContext<AuthContextType>({
   isAuthenticated: false,
   isLoading: true,
   login: async () => false,
-  register: async () => false,
   logout: () => { },
   verifyOtp: async () => false,
   updateProfile: () => { },
   pendingPhone: null,
-  pendingUsername: null,
   setPendingPhone: () => { },
-  setPendingUsername: () => { },
+  verifyToken: async () => false,
+  refreshToken: async () => false,
 });
 
 export const useAuth = () => useContext(AuthContext);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<User | null>(() => {
+    const storedUser = localStorage.getItem("staffuser_data");
+    return storedUser ? JSON.parse(storedUser) : null;
+  });
+  const [token, setToken] = useState<string | null>(() => {
+    return localStorage.getItem("staffuser_token") || null;
+  });
   const [isLoading, setIsLoading] = useState(true);
   const [pendingPhone, setPendingPhone] = useState<string | null>(null);
-  const [pendingUsername, setPendingUsername] = useState<string | null>(null);
   const { toast } = useToast();
   const navigate = useNavigate();
 
-  // Check for existing user in localStorage on initial load
-  useEffect(() => {
-    const storedUser = localStorage.getItem("user");
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
-    }
-    setIsLoading(false);
-  }, []);
+  // We'll store the refresh timeout id here
+  const refreshTimeoutId = useRef<NodeJS.Timeout | null>(null);
 
-  // Mock login function
-  const login = async (username: string, phone: string): Promise<boolean> => {
+  // Helper: Decode JWT to get expiry time
+  function getTokenExpiry(jwtToken: string): number | null {
     try {
-      // In a real app, you would call an API here
-      setPendingPhone(phone);
-      setPendingUsername(username);
-
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      toast({
-        title: "OTP Sent",
-        description: "Please enter the OTP sent to your mobile number",
-      });
-
-      return true;
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to send OTP. Please try again.",
-        variant: "destructive",
-      });
-      return false;
+      const base64Payload = jwtToken.split('.')[1];
+      const payload = JSON.parse(atob(base64Payload));
+      return payload.exp ? payload.exp * 1000 : null;
+    } catch {
+      return null;
     }
-  };
+  }
 
-  // Mock register function
-  const register = async (username: string, phone: string): Promise<boolean> => {
-    try {
-      // In a real app, you would call an API here
-      setPendingPhone(phone);
-      setPendingUsername(username);
-
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      toast({
-        title: "OTP Sent",
-        description: "Please enter the OTP sent to your mobile number to complete registration",
-      });
-
-      return true;
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to register. Please try again.",
-        variant: "destructive",
-      });
-      return false;
+  // Schedule token refresh some minutes before expiration
+  function scheduleRefresh(tokenToSchedule: string) {
+    if (refreshTimeoutId.current) {
+      clearTimeout(refreshTimeoutId.current);
     }
-  };
-
-  // Mock OTP verification
-  const verifyOtp = async (otp: string): Promise<boolean> => {
-    if (!pendingPhone || !pendingUsername) {
-      toast({
-        title: "Error",
-        description: "Something went wrong. Please try again.",
-        variant: "destructive",
-      });
-      return false;
-    }
-
-    try {
-      // In a real app, you would verify the OTP with an API
-      // For demo purposes, any 4-digit OTP works
-      if (otp.length !== 4) {
-        toast({
-          title: "Invalid OTP",
-          description: "Please enter a valid 4-digit OTP",
-          variant: "destructive",
-        });
-        return false;
+    const expiryTime = getTokenExpiry(tokenToSchedule);
+    if (!expiryTime) return;
+    const now = Date.now();
+    const msBeforeExpiry = expiryTime - now;
+    const refreshTime = msBeforeExpiry > 60_000 ? msBeforeExpiry - 60_000 : 0;
+    refreshTimeoutId.current = setTimeout(async () => {
+      const success = await refreshToken();
+      if (!success) {
+        logout();
       }
+    }, refreshTime);
+  }
 
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+  useEffect(() => {
+    setIsLoading(false);
+    if (token) {
+      scheduleRefresh(token);
+    }
+    return () => {
+      if (refreshTimeoutId.current) clearTimeout(refreshTimeoutId.current);
+    };
+  }, [token]);
 
-      // Create a new user object
-      const newUser: User = {
-        id: Math.random().toString(36).substring(2, 9),
-        username: pendingUsername,
-        phone: pendingPhone,
-        email: "",
-        department: "",
-        address: "",
-      };
-
-      // Save the user to localStorage
-      localStorage.setItem("user", JSON.stringify(newUser));
-      setUser(newUser);
-      setPendingPhone(null);
-      setPendingUsername(null);
-
-      toast({
-        title: "Success!",
-        description: "You have been logged in successfully.",
+  const verifyToken = async (): Promise<boolean> => {
+    if (!token) return false;
+    try {
+      const res = await axios.post(`${API_URL}api/app/auth/verifyJWT`, {}, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       });
-
-      // Redirect to dashboard
-      navigate("/dashboard");
-      return true;
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to verify OTP. Please try again.",
-        variant: "destructive",
-      });
+      return res.status === 200;
+    } catch {
       return false;
     }
   };
 
-  // Logout function
-  const logout = () => {
-    localStorage.removeItem("user");
-    setUser(null);
-    navigate("/");
-    toast({
-      title: "Logged Out",
-      description: "You have been logged out successfully.",
-    });
+  const refreshToken = async (): Promise<boolean> => {
+    if (!token) return false;
+    try {
+      const res = await axios.post(`${API_URL}api/app/auth/refreshJWT`, {}, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      const newToken = res.data.data.token;
+      setToken(newToken);
+      localStorage.setItem("staffuser_token", newToken);
+      scheduleRefresh(newToken);
+      return true;
+    } catch (err) {
+      console.error("Failed to refresh token", err);
+      return false;
+    }
   };
 
-  // Update profile function
+  const login = async (phone: string): Promise<boolean> => {
+    try {
+      await axios.post(`${API_URL}api/app/auth/request-otp`, { phone });
+      setPendingPhone(phone);
+      return true;
+    } catch (error: any) {
+      return false;
+    }
+  };
+
+  const verifyOtp = async (otp: string): Promise<boolean> => {
+    if (!pendingPhone) {
+      return false;
+    }
+    try {
+      const res = await axios.post(`${API_URL}api/app/auth/login`, {
+        phone: pendingPhone,
+        otp,
+      });
+      const staff = res.data.data.userData;
+      const receivedToken = res.data.data.token;
+      setUser(staff);
+      setToken(receivedToken);
+      localStorage.setItem("staffuser_data", JSON.stringify(staff));
+      localStorage.setItem("staffuser_token", receivedToken);
+      setPendingPhone(null);
+      navigate("/time-logs");
+      return true;
+    } catch (error: any) {
+      return false;
+    }
+  };
+
+  const logout = async () => {
+    try {
+      await axios.post(
+        `${API_URL}api/app/auth/logout`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+    } catch (error) {
+      console.error("Logout failed:", error);
+    }
+    if (refreshTimeoutId.current) {
+      clearTimeout(refreshTimeoutId.current);
+    }
+    localStorage.removeItem("staffuser_data");
+    localStorage.removeItem("staffuser_token");
+    setUser(null);
+    setToken(null);
+    navigate("/");
+  };
+
   const updateProfile = (userData: Partial<User>) => {
     if (!user) return;
-
     const updatedUser = { ...user, ...userData };
-    localStorage.setItem("user", JSON.stringify(updatedUser));
+    localStorage.setItem("staffuser_data", JSON.stringify(updatedUser));
     setUser(updatedUser);
-
-    toast({
-      title: "Profile Updated",
-      description: "Your profile has been updated successfully.",
-    });
   };
 
-  // Calculate authentication status based on user
-  const isAuthenticated = !!user;
+  const isAuthenticated = !!user && !!token;
 
   return (
     <AuthContext.Provider
@@ -210,14 +209,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         isAuthenticated,
         isLoading,
         login,
-        register,
         logout,
         verifyOtp,
         updateProfile,
         pendingPhone,
-        pendingUsername,
         setPendingPhone,
-        setPendingUsername,
+        verifyToken,
+        refreshToken,
       }}
     >
       {children}

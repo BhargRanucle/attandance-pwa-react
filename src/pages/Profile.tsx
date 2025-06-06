@@ -20,7 +20,7 @@ const Profile = () => {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
-    username: user?.username || "",
+    username: user?.name || "",
     email: user?.email || "",
     department: user?.department || "",
     address: user?.address || "",
@@ -107,11 +107,11 @@ const Profile = () => {
                 <Avatar className="h-24 w-24 md:h-28 md:w-28 border-2 border-app-white shadow-lg">
                   <AvatarImage src={formData.profilePicture} />
                   <AvatarFallback className="bg-gradient-to-b from-app-purple to-app-purple-dark text-white text-2xl">
-                    {user?.username?.charAt(0).toUpperCase() || "U"}
+                    {user?.name?.charAt(0).toUpperCase() || "U"}
                   </AvatarFallback>
                 </Avatar>
               </div>
-              <CardTitle className="text-2xl font-bold text-black">{user?.username}</CardTitle>
+              <CardTitle className="text-2xl font-bold text-black">{"Nikunj Solanki"}</CardTitle>
               <CardDescription className="text-lg font-bold text-black">{user?.phone}</CardDescription>
             </CardHeader>
             <CardContent>

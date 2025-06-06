@@ -1,32 +1,30 @@
-
 import { useState } from "react";
-import { Link, Navigate } from "react-router-dom";
+import { Navigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/contexts/AuthContext";
 import { User, Phone } from "lucide-react";
 
 const Login = () => {
   const { isAuthenticated, login, verifyOtp, pendingPhone } = useAuth();
-  const [username, setUsername] = useState("");
   const [phone, setPhone] = useState("");
   const [otp, setOtp] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [otpSent, setOtpSent] = useState(false);
 
-  // Redirect if already authenticated
   if (isAuthenticated) {
-    return <Navigate to="/dashboard" replace />;
+    return <Navigate to="/time-logs" replace />;
   }
 
   const handleSendOtp = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
+
     try {
-      const success = await login(username, phone);
+      const success = await login(phone);
       if (success) {
         setOtpSent(true);
       }
@@ -38,6 +36,7 @@ const Login = () => {
   const handleVerifyOtp = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
+
 
     try {
       await verifyOtp(otp);
@@ -59,26 +58,14 @@ const Login = () => {
             <CardDescription>
               {otpSent
                 ? "Enter the OTP sent to your mobile number"
-                : "Enter your credentials to login"}
+                : "Enter your mobile number to receive an OTP"}
             </CardDescription>
           </CardHeader>
           <CardContent>
             {!otpSent ? (
               <form onSubmit={handleSendOtp} className="space-y-4">
-                <div className="space-y-1 text-left">
-                  <Label htmlFor="username" className="flex place-items-center"><User size={25} className="p-1 mr-1 text-app-purple" />Username</Label>
-                  <Input
-                    id="username"
-                    placeholder="Enter your username"
-                    value={username}
-                    onChange={(e) => setUsername(e.target.value)}
-                    className="border-app-purple/20"
-                    required
-                  />
-                </div>
-
-                <div className="space-y-1 text-left pb-4">
-                  <Label htmlFor="phone" className="flex place-items-center"><Phone size={25} className="p-1 mr-1 text-app-purple" />Mobile Number</Label>
+                <div className="space-y-2">
+                  <Label htmlFor="phone">Mobile Number</Label>
                   <Input
                     id="phone"
                     type="tel"
@@ -127,14 +114,6 @@ const Login = () => {
               </form>
             )}
           </CardContent>
-          <CardFooter>
-            <p className="text-sm text-center w-full">
-              Don't have an account?{" "}
-              <Link to="/register" className="text-app-purple font-medium hover:underline">
-                Register
-              </Link>
-            </p>
-          </CardFooter>
         </Card>
       </div>
     </div>
