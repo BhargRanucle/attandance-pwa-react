@@ -1,31 +1,28 @@
-
 import { useState } from "react";
-import { Link, Navigate } from "react-router-dom";
+import { Navigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/contexts/AuthContext";
 
 const Login = () => {
   const { isAuthenticated, login, verifyOtp, pendingPhone } = useAuth();
-  const [username, setUsername] = useState("");
   const [phone, setPhone] = useState("");
   const [otp, setOtp] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [otpSent, setOtpSent] = useState(false);
 
-  // Redirect if already authenticated
   if (isAuthenticated) {
-    return <Navigate to="/dashboard" replace />;
+    return <Navigate to="/time-logs" replace />;
   }
 
   const handleSendOtp = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    
+
     try {
-      const success = await login(username, phone);
+      const success = await login(phone); 
       if (success) {
         setOtpSent(true);
       }
@@ -37,7 +34,7 @@ const Login = () => {
   const handleVerifyOtp = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    
+
     try {
       await verifyOtp(otp);
     } finally {
@@ -57,25 +54,14 @@ const Login = () => {
           <CardHeader>
             <CardTitle>Login</CardTitle>
             <CardDescription>
-              {otpSent 
-                ? "Enter the OTP sent to your mobile number" 
-                : "Enter your credentials to login"}
+              {otpSent
+                ? "Enter the OTP sent to your mobile number"
+                : "Enter your mobile number to receive an OTP"}
             </CardDescription>
           </CardHeader>
           <CardContent>
             {!otpSent ? (
               <form onSubmit={handleSendOtp} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="username">Username</Label>
-                  <Input
-                    id="username"
-                    placeholder="Enter your username"
-                    value={username}
-                    onChange={(e) => setUsername(e.target.value)}
-                    required
-                  />
-                </div>
-
                 <div className="space-y-2">
                   <Label htmlFor="phone">Mobile Number</Label>
                   <Input
@@ -88,9 +74,9 @@ const Login = () => {
                   />
                 </div>
 
-                <Button 
-                  type="submit" 
-                  className="w-full bg-app-purple hover:bg-app-purple-dark" 
+                <Button
+                  type="submit"
+                  className="w-full bg-app-purple hover:bg-app-purple-dark"
                   disabled={isLoading}
                 >
                   {isLoading ? "Sending OTP..." : "Send OTP"}
@@ -115,9 +101,9 @@ const Login = () => {
                   </p>
                 </div>
 
-                <Button 
-                  type="submit" 
-                  className="w-full bg-app-purple hover:bg-app-purple-dark" 
+                <Button
+                  type="submit"
+                  className="w-full bg-app-purple hover:bg-app-purple-dark"
                   disabled={isLoading}
                 >
                   {isLoading ? "Verifying..." : "Verify OTP"}
@@ -125,14 +111,6 @@ const Login = () => {
               </form>
             )}
           </CardContent>
-          <CardFooter>
-            <p className="text-sm text-center w-full">
-              Don't have an account?{" "}
-              <Link to="/register" className="text-app-purple font-medium hover:underline">
-                Register
-              </Link>
-            </p>
-          </CardFooter>
         </Card>
       </div>
     </div>
