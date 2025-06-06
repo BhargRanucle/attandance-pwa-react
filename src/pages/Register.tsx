@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/contexts/AuthContext";
+import { User, Phone } from "lucide-react";
 
 const Register = () => {
   const { isAuthenticated, register, verifyOtp, pendingPhone } = useAuth();
@@ -23,7 +24,7 @@ const Register = () => {
   const handleSendOtp = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    
+
     try {
       const success = await register(username, phone);
       if (success) {
@@ -37,7 +38,7 @@ const Register = () => {
   const handleVerifyOtp = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    
+
     try {
       await verifyOtp(otp);
     } finally {
@@ -46,14 +47,13 @@ const Register = () => {
   };
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center p-4 bg-gradient-to-b from-app-purple-light to-background">
-      <div className="w-full max-w-md">
-        <div className="text-center mb-6">
-          <h1 className="text-3xl font-bold mb-2 text-gradient">Attendance</h1>
-          <p className="text-muted-foreground">Track your work hours effortlessly</p>
+    <div className="flex min-h-screen flex-col justify-center p-4 bg-gradient-to-t from-app-purple/70 to-app-purple-dark/10">
+      <div className="loginPage w-full max-w-md">
+        <div className="flex flex-col place-items-center justify-center mb-3">
+          <img className="header-logoLogin" src="/logoLogin.png" alt="VARDAN" />
         </div>
 
-        <Card className="w-full">
+        <Card className="w-full border-app-purple">
           <CardHeader>
             <CardTitle>Register</CardTitle>
             <CardDescription>
@@ -65,32 +65,34 @@ const Register = () => {
           <CardContent>
             {!otpSent ? (
               <form onSubmit={handleSendOtp} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="username">Username</Label>
+                <div className="space-y-1 text-left">
+                  <Label htmlFor="username" className="flex place-items-center"><User size={25} className="p-1 mr-1 text-app-purple" />Username</Label>
                   <Input
                     id="username"
                     placeholder="Enter your username"
                     value={username}
                     onChange={(e) => setUsername(e.target.value)}
+                    className="border-app-purple/20"
                     required
                   />
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="phone">Mobile Number</Label>
+                <div className="space-y-1 text-left  pb-4">
+                  <Label htmlFor="phone" className="flex place-items-center"><Phone size={25} className="p-1 mr-1 text-app-purple" />Mobile Number</Label>
                   <Input
                     id="phone"
                     type="tel"
                     placeholder="Enter your mobile number"
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
+                    className="border-app-purple/20"
                     required
                   />
                 </div>
 
                 <Button
                   type="submit"
-                  className="w-full bg-app-purple hover:bg-app-purple-dark"
+                  className="w-full font-bold bg-gradient-to-b from-app-purple to-app-purple-dark py-6"
                   disabled={isLoading}
                 >
                   {isLoading ? "Sending OTP..." : "Send OTP"}

@@ -9,7 +9,7 @@ import TimeDisplay from "@/components/TimeDisplay";
 import Layout from "@/components/Layout";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAttendance } from "@/contexts/AttendanceContext";
-import { Clock, Calendar, Play, Pause, LogOut, History } from "lucide-react";
+import { Clock, Calendar, Play, Pause, LogOut, History, AlarmClock } from "lucide-react";
 
 const TimeLogs = () => {
   const { isAuthenticated } = useAuth();
@@ -121,11 +121,11 @@ const TimeLogs = () => {
         {/* Current Status Card */}
         <div className="">
           <Card className="overflow-hidden border-none shadow-lg">
-            <div className="bg-gradient-to-r from-app-purple to-app-blue p-1"></div>
-            <CardHeader className="bg-gradient-to-b from-app-purple-light/30 to-transparent pb-2 px-4">
+            <div className="bg-gradient-to-r from-app-purple/100 to-app-blue p-1"></div>
+            <CardHeader className="bg-gradient-to-b from-app-purple-light/10 to-transparent pb-2">
               <div className="flex items-center gap-2">
-                <Clock className="text-app-purple" size={20} />
-                <CardTitle className="text-lg font-medium">
+                <Clock className="text-app-purple" size={25} />
+                <CardTitle className="text-lg font-bold">
                   Current Status
                 </CardTitle>
               </div>
@@ -134,10 +134,10 @@ const TimeLogs = () => {
               <div className="mb-6 text-center py-2">
                 {isCheckedIn ? (
                   <>
-                    <p className="text-sm text-muted-foreground mb-1">
+                    <p className="text-sm text-muted-foreground mb-5">
                       {isOnBreak ? "On Break" : "Working Time"}
                     </p>
-                    <div className="bg-gradient-to-br from-app-purple-light to-white p-5 rounded-full inline-block shadow-inner">
+                    <div className="bg-[#222222]/10 text-black p-10 rounded-full inline-block shadow-inner">
                       <TimeDisplay
                         seconds={isOnBreak ? breakTime : elapsedTime}
                         pulsing={true}
@@ -147,10 +147,10 @@ const TimeLogs = () => {
                   </>
                 ) : (
                   <div className="py-6">
-                    <div className="w-24 h-24 mx-auto bg-app-light rounded-full flex items-center justify-center shadow-inner">
-                      <Clock size={48} className="text-app-gray" />
+                    <div className="w-24 h-24 mx-auto bg-gradient-to-b from-app-purple to-app-purple-dark rounded-full flex items-center justify-center shadow-inner">
+                      <Clock size={50} className="text-app-white" />
                     </div>
-                    <p className="text-muted-foreground mt-4">
+                    <p className="text-muted-foreground mt-2">
                       You are not checked in
                     </p>
                   </div>
@@ -161,34 +161,34 @@ const TimeLogs = () => {
                 {!isCheckedIn ? (
                   <Button
                     onClick={checkIn}
-                    className="log-button bg-gradient-to-r from-app-purple to-app-blue hover:opacity-90 col-span-2 py-6"
+                    className="log-button font-bold bg-gradient-to-b from-app-purple to-app-purple-dark col-span-2 py-6"
                   >
-                    <Clock className="mr-2" size={20} />
+                    <AlarmClock className="mr-0" size={25} />
                     Check In
                   </Button>
                 ) : (
                   <>
                     <Button
                       onClick={checkOut}
-                      className="log-button bg-gradient-to-r from-app-red/90 to-app-red hover:opacity-90 py-4"
+                      className="log-button font-bold bg-gradient-to-t from-app-red to-app-red-dark py-6"
                     >
-                      <LogOut className="mr-2" size={18} />
+                      <LogOut className="mr-0" size={18} />
                       Check Out
                     </Button>
                     {!isOnBreak ? (
                       <Button
                         onClick={startBreak}
-                        className="log-button bg-gradient-to-r from-app-blue to-app-blue/80 hover:opacity-90 py-4"
+                        className="log-button font-bold bg-gradient-to-b from-app-blue to-app-purple-dark py-6"
                       >
-                        <Pause className="mr-2" size={18} />
+                        <Pause className="mr-0" size={18} />
                         Start Break
                       </Button>
                     ) : (
                       <Button
                         onClick={endBreak}
-                        className="log-button bg-gradient-to-r from-app-blue/80 to-app-blue hover:opacity-90 py-4"
+                        className="log-button font-bold bg-gradient-to-b from-app-blue to-app-purple-dark py-6"
                       >
-                        <Play className="mr-2" size={18} />
+                        <Play className="mr-0" size={18} />
                         End Break
                       </Button>
                     )}
@@ -196,39 +196,39 @@ const TimeLogs = () => {
                 )}
               </div>
 
-              {latLong?.lat && latLong?.long ? (
+              {/* {latLong?.lat && latLong?.long ? (
                 <div className="text-xs text-center bg-app-blue/10 px-2 py-1 rounded-full text-app-blue w-full mt-2">
                   {`Latitude: ${latLong.lat}, Longitude: ${latLong.long}`}
                 </div>
               ) : (
                 <Button
                   onClick={getCurrentLocation}
-                  className="log-button bg-gradient-to-r from-app-purple to-app-blue hover:opacity-90 col-span-2 py-6 w-full mt-2"
+                  className="log-button bg-gradient-to-r from-app-purple to-app-blue col-span-2 py-6 w-full mt-2"
                 >
                   Turn On Location
                 </Button>
-              )}
+              )} */}
               {isCheckedIn && currentLog && (
-                <div className="mt-6 p-4 bg-app-purple-light/20 rounded-lg shadow-sm">
+                <div className="mt-6">
                   <div className="flex justify-between items-center">
                     <div className="flex items-center gap-2">
-                      <Clock size={16} className="text-app-purple" />
-                      <p className="text-sm text-app-purple-dark font-medium">
+                      {/* <Clock size={16} className="text-app-purple" /> */}
+                      <p className="text-[#222222]">
                         Check-in time
                       </p>
                     </div>
-                    <p className="font-medium">
+                    <p className="text-md font-semibold">
                       {format(new Date(currentLog.checkInTime), "h:mm a")}
                     </p>
                   </div>
                   <div className="flex justify-between items-center mt-2">
                     <div className="flex items-center gap-2">
-                      <Pause size={16} className="text-app-purple" />
-                      <p className="text-sm text-app-purple-dark font-medium">
+                      {/* <Pause size={16} className="text-app-purple" /> */}
+                      <p className="text-[#222222]">
                         Break time
                       </p>
                     </div>
-                    <p className="font-medium">
+                    <p className="text-md font-semibold">
                       {Math.floor(currentLog.totalBreakTime / 60)} min
                     </p>
                   </div>
@@ -241,11 +241,11 @@ const TimeLogs = () => {
         {/* Log History Card */}
         <div className="" style={{ animationDelay: "0.1s" }}>
           <Card className="overflow-hidden border-none shadow-lg">
-            <div className="bg-gradient-to-r from-app-blue to-app-purple p-1"></div>
-            <CardHeader className="bg-gradient-to-b from-app-light to-transparent pb-2 px-4">
+            <div className="bg-gradient-to-r from-app-purple/100 to-app-blue p-1"></div>
+            <CardHeader className="bg-gradient-to-b from-app-purple-light/10 to-transparent pb-2">
               <div className="flex items-center gap-2">
-                <History className="text-app-blue" size={20} />
-                <CardTitle className="text-lg font-medium">
+                <History className="text-app-purple" size={25} />
+                <CardTitle className="text-lg font-bold">
                   Log History
                 </CardTitle>
               </div>
@@ -259,6 +259,7 @@ const TimeLogs = () => {
                   startDate={startDate}
                   endDate={endDate}
                   onDateChange={handleDateRangeChange}
+                  className=""
                 />
               </div>
 
@@ -282,30 +283,30 @@ const TimeLogs = () => {
                     return (
                       <div
                         key={log.id}
-                        className="p-4 bg-gradient-to-br from-white to-app-purple-light/95 rounded-lg shadow-sm"
+                        className="p-4 bg-gradient-to-br from-white to-app-purple-light/30 rounded-lg shadow-sm"
                       >
                         <div className="flex justify-between items-center">
                           <div className="flex items-center gap-2">
                             <Calendar
                               size={16}
-                              className="text-app-purple-dark"
+                              className="text-app-purple"
                             />
-                            <p className="font-medium">
+                            <p className="text-[#222222]">
                               {format(new Date(log.date), "EEE, MMM d")}
                             </p>
                           </div>
-                          <div className="bg-app-purple/10 px-2 py-1 rounded-full">
-                            <p className="text-xs font-medium text-app-purple">
+                          <div className="orange-background bg-gradient-to-b from-app-purple to-app-purple-dark px-2 py-1 rounded-full">
+                            <p className="text-xs font-medium text-white">
                               {workHours}h {workMinutes}m
                             </p>
                           </div>
                         </div>
                         <div className="mt-2 flex justify-between text-sm">
-                          <span className="text-muted-foreground">
+                          <span className="text-[#222222]">
                             {format(checkInTime, "h:mm a")} -{" "}
                             {format(checkOutTime, "h:mm a")}
                           </span>
-                          <span className="text-muted-foreground">
+                          <span className="text-[#222222]">
                             Break: {breakMinutes}m
                           </span>
                         </div>

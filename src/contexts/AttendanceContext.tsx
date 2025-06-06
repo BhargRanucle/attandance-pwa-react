@@ -65,11 +65,11 @@ const AttendanceContext = createContext<AttendanceContextType>({
   activeBreaks: [],
   elapsedTime: 0,
   breakTime: 0,
-  checkIn: () => {},
-  checkOut: () => {},
-  startBreak: () => {},
-  endBreak: () => {},
-  submitEmergencyLog: () => {},
+  checkIn: () => { },
+  checkOut: () => { },
+  startBreak: () => { },
+  endBreak: () => { },
+  submitEmergencyLog: () => { },
   getWeeklySummary: () => ({ totalHours: 0, presentDays: 0, averageHours: 0, totalBreakTime: 0 }),
   getFilteredLogs: () => [],
   getFilteredEmergencyLogs: () => [],
@@ -92,7 +92,7 @@ export const AttendanceProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   // Timer for continuous updating of elapsed time
   useEffect(() => {
     let timer: NodeJS.Timeout;
-    
+
     if (currentLog && !currentBreak) {
       timer = setInterval(() => {
         const checkInTime = new Date(currentLog.checkInTime).getTime();
@@ -101,7 +101,7 @@ export const AttendanceProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         setElapsedTime(Math.floor((now - checkInTime - totalBreakTimeMs) / 1000));
       }, 1000);
     }
-    
+
     return () => {
       if (timer) clearInterval(timer);
     };
@@ -110,7 +110,7 @@ export const AttendanceProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   // Timer for break time
   useEffect(() => {
     let timer: NodeJS.Timeout;
-    
+
     if (currentBreak) {
       timer = setInterval(() => {
         const startTime = new Date(currentBreak.startTime).getTime();
@@ -120,7 +120,7 @@ export const AttendanceProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     } else {
       setBreakTime(0);
     }
-    
+
     return () => {
       if (timer) clearInterval(timer);
     };
@@ -133,32 +133,32 @@ export const AttendanceProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       if (storedLogs) {
         const parsedLogs: TimeLog[] = JSON.parse(storedLogs);
         setAllLogs(parsedLogs);
-        
+
         // Check if there's an active log for today
         const today = new Date().toISOString().split('T')[0];
         const activeLog = parsedLogs.find(
           log => log.date === today && log.status === "active"
         );
-        
+
         if (activeLog) {
           setCurrentLog(activeLog);
-          
+
           // Calculate elapsed time
           const checkInTime = new Date(activeLog.checkInTime).getTime();
           const now = Date.now();
           const totalBreakTimeMs = activeLog.totalBreakTime * 1000;
           setElapsedTime(Math.floor((now - checkInTime - totalBreakTimeMs) / 1000));
-          
+
           // Check if there's an active break
           const storedBreaks = localStorage.getItem(`breaks-${activeLog.id}`);
           if (storedBreaks) {
             const parsedBreaks: Break[] = JSON.parse(storedBreaks);
             const activeBreak = parsedBreaks.find(brk => brk.endTime === null);
-            
+
             if (activeBreak) {
               setCurrentBreak(activeBreak);
               setActiveBreaks(parsedBreaks);
-              
+
               // Calculate break time
               const startTime = new Date(activeBreak.startTime).getTime();
               setBreakTime(Math.floor((now - startTime) / 1000));
@@ -166,7 +166,7 @@ export const AttendanceProvider: React.FC<{ children: React.ReactNode }> = ({ ch
           }
         }
       }
-      
+
       // Load emergency logs
       const storedEmergencyLogs = localStorage.getItem(`emergency-logs-${user.id}`);
       if (storedEmergencyLogs) {
@@ -189,35 +189,35 @@ export const AttendanceProvider: React.FC<{ children: React.ReactNode }> = ({ ch
             status: "approved",
           }
         ];
-        
+
         setEmergencyLogs(sampleEmergencyLogs);
         localStorage.setItem(`emergency-logs-${user.id}`, JSON.stringify(sampleEmergencyLogs));
       }
-      
+
       // If no logs exist yet, generate sample logs
       if (!storedLogs) {
         // Create sample logs for the past few days
         const now = new Date();
         const sampleLogs: TimeLog[] = [];
-        
+
         // Create logs for the past 3 days
         for (let i = 3; i > 0; i--) {
           const date = new Date();
           date.setDate(now.getDate() - i);
           const dateString = date.toISOString().split('T')[0];
-          
+
           const checkInHour = 9;
           const checkOutHour = 17 + Math.floor(Math.random() * 2); // 5 PM to 7 PM
-          
+
           const checkInTime = new Date(date);
           checkInTime.setHours(checkInHour, 0, 0, 0);
-          
+
           const checkOutTime = new Date(date);
           checkOutTime.setHours(checkOutHour, Math.floor(Math.random() * 59), 0, 0);
-          
+
           // Break time 30-60 minutes
           const breakTimeSeconds = (30 + Math.floor(Math.random() * 30)) * 60;
-          
+
           sampleLogs.push({
             id: `sample-${i}`,
             userId: user.id,
@@ -228,7 +228,7 @@ export const AttendanceProvider: React.FC<{ children: React.ReactNode }> = ({ ch
             status: "completed",
           });
         }
-        
+
         setAllLogs(sampleLogs);
         localStorage.setItem(`logs-${user.id}`, JSON.stringify(sampleLogs));
       }
@@ -260,7 +260,7 @@ export const AttendanceProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   // Check in function
   const checkIn = () => {
     if (!user) return;
-    
+
     if (isCheckedIn) {
       toast({
         title: "Already Checked In",
@@ -268,10 +268,10 @@ export const AttendanceProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       });
       return;
     }
-    
+
     const now = new Date();
     const today = now.toISOString().split('T')[0];
-    
+
     const newLog: TimeLog = {
       id: Math.random().toString(36).substring(2, 9),
       userId: user.id,
@@ -281,11 +281,11 @@ export const AttendanceProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       date: today,
       status: "active",
     };
-    
+
     setCurrentLog(newLog);
     setAllLogs(prev => [...prev, newLog]);
     setElapsedTime(0);
-    
+
     toast({
       title: "Checked In",
       description: `Check-in time: ${now.toLocaleTimeString()}`,
@@ -295,7 +295,7 @@ export const AttendanceProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   // Check out function
   const checkOut = () => {
     if (!currentLog || !user) return;
-    
+
     // Can't check out if on break
     if (isOnBreak) {
       toast({
@@ -305,22 +305,22 @@ export const AttendanceProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       });
       return;
     }
-    
+
     const now = new Date();
-    
+
     const updatedLog: TimeLog = {
       ...currentLog,
       checkOutTime: now.toISOString(),
       status: "completed",
     };
-    
+
     setAllLogs(prev =>
       prev.map(log => (log.id === currentLog.id ? updatedLog : log))
     );
-    
+
     setCurrentLog(null);
     setElapsedTime(0);
-    
+
     toast({
       title: "Checked Out",
       description: `Check-out time: ${now.toLocaleTimeString()}`,
@@ -330,7 +330,7 @@ export const AttendanceProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   // Start break function
   const startBreak = () => {
     if (!currentLog || !user) return;
-    
+
     if (isOnBreak) {
       toast({
         title: "Already on Break",
@@ -338,23 +338,23 @@ export const AttendanceProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       });
       return;
     }
-    
+
     const now = new Date();
-    
+
     const newBreak: Break = {
       id: Math.random().toString(36).substring(2, 9),
       startTime: now.toISOString(),
       endTime: null,
     };
-    
+
     const updatedBreaks = [...activeBreaks, newBreak];
-    
+
     setCurrentBreak(newBreak);
     setActiveBreaks(updatedBreaks);
     setBreakTime(0);
-    
+
     localStorage.setItem(`breaks-${currentLog.id}`, JSON.stringify(updatedBreaks));
-    
+
     toast({
       title: "Break Started",
       description: `Break started at: ${now.toLocaleTimeString()}`,
@@ -364,39 +364,39 @@ export const AttendanceProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   // End break function
   const endBreak = () => {
     if (!currentLog || !currentBreak || !user) return;
-    
+
     const now = new Date();
     const startTime = new Date(currentBreak.startTime).getTime();
     const breakDuration = Math.floor((now.getTime() - startTime) / 1000); // in seconds
-    
+
     // Update the break
     const updatedBreak: Break = {
       ...currentBreak,
       endTime: now.toISOString(),
     };
-    
+
     // Update the breaks array
     const updatedBreaks = activeBreaks.map(b =>
       b.id === currentBreak.id ? updatedBreak : b
     );
-    
+
     // Update the current log with the break time
     const updatedLog: TimeLog = {
       ...currentLog,
       totalBreakTime: currentLog.totalBreakTime + breakDuration,
     };
-    
+
     setCurrentLog(updatedLog);
     setAllLogs(prev =>
       prev.map(log => (log.id === currentLog.id ? updatedLog : log))
     );
-    
+
     setCurrentBreak(null);
     setActiveBreaks(updatedBreaks);
     setBreakTime(0);
-    
+
     localStorage.setItem(`breaks-${currentLog.id}`, JSON.stringify(updatedBreaks));
-    
+
     toast({
       title: "Break Ended",
       description: `Break duration: ${formatTime(breakDuration)}`,
@@ -406,7 +406,7 @@ export const AttendanceProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   // Submit emergency log function
   const submitEmergencyLog = (date: string, reason: string, image?: string) => {
     if (!user) return;
-    
+
     const newLog: EmergencyLog = {
       id: Math.random().toString(36).substring(2, 9),
       userId: user.id,
@@ -415,9 +415,9 @@ export const AttendanceProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       status: "pending",
       // ...(image ? { image } : {})
     };
-    
+
     setEmergencyLogs(prev => [...prev, newLog]);
-    
+
     toast({
       title: "Emergency Log Submitted",
       description: "Your emergency log has been submitted for approval.",
@@ -434,22 +434,22 @@ export const AttendanceProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         totalBreakTime: 0,
       };
     }
-    
+
     // Get logs from the past 7 days
     const now = new Date();
     const oneWeekAgo = new Date();
     oneWeekAgo.setDate(now.getDate() - 7);
-    
+
     const weekLogs = allLogs.filter(log => {
       const logDate = new Date(log.date);
       return logDate >= oneWeekAgo && logDate <= now;
     });
-    
+
     // Calculate statistics
     let totalTimeSeconds = 0;
     let totalBreakSeconds = 0;
     const presentDays = new Set(weekLogs.map(log => log.date)).size;
-    
+
     weekLogs.forEach(log => {
       if (log.status === "completed" && log.checkOutTime) {
         const checkInTime = new Date(log.checkInTime).getTime();
@@ -459,10 +459,10 @@ export const AttendanceProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         totalBreakSeconds += log.totalBreakTime;
       }
     });
-    
+
     const totalHours = totalTimeSeconds / 3600;
     const averageHours = presentDays > 0 ? totalHours / presentDays : 0;
-    
+
     return {
       totalHours,
       presentDays,
@@ -486,7 +486,7 @@ export const AttendanceProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     const hours = Math.floor(seconds / 3600);
     const minutes = Math.floor((seconds % 3600) / 60);
     const secs = seconds % 60;
-    
+
     return [
       hours.toString().padStart(2, "0"),
       minutes.toString().padStart(2, "0"),

@@ -1,4 +1,3 @@
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -98,17 +97,13 @@
   ::-webkit-scrollbar {
     width: 8px;
   }
-  
+
   ::-webkit-scrollbar-track {
     @apply bg-app-light;
   }
-  
+
   ::-webkit-scrollbar-thumb {
     @apply bg-app-purple/50 rounded-full;
-  }
-  
-  ::-webkit-scrollbar-thumb:hover {
-    @apply bg-app-purple/70;
   }
 }
 
@@ -122,13 +117,13 @@
   }
 
   .log-button {
-    @apply relative flex items-center justify-center px-6 py-3 font-semibold text-white rounded-xl transition-all duration-200 shadow-md hover:shadow-lg;
+    @apply relative flex items-center justify-center px-6 py-3 font-semibold text-white rounded-xl transition-all duration-200 shadow-md;
   }
 
   .nav-item {
-    @apply flex flex-col items-center justify-center w-full p-2 space-y-1 text-xs font-medium transition-colors hover:text-app-purple;
+    @apply flex flex-col items-center justify-center w-full p-2 space-y-1 text-xs font-medium transition-colors;
   }
-  
+
   .nav-item.active {
     @apply text-app-purple;
   }

@@ -35,13 +35,13 @@ const AuthContext = createContext<AuthContextType>({
   isLoading: true,
   login: async () => false,
   register: async () => false,
-  logout: () => {},
+  logout: () => { },
   verifyOtp: async () => false,
-  updateProfile: () => {},
+  updateProfile: () => { },
   pendingPhone: null,
   pendingUsername: null,
-  setPendingPhone: () => {},
-  setPendingUsername: () => {},
+  setPendingPhone: () => { },
+  setPendingUsername: () => { },
 });
 
 export const useAuth = () => useContext(AuthContext);
@@ -69,15 +69,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // In a real app, you would call an API here
       setPendingPhone(phone);
       setPendingUsername(username);
-      
+
       // Simulate API call
       await new Promise((resolve) => setTimeout(resolve, 1000));
-      
+
       toast({
         title: "OTP Sent",
         description: "Please enter the OTP sent to your mobile number",
       });
-      
+
       return true;
     } catch (error) {
       toast({
@@ -95,15 +95,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // In a real app, you would call an API here
       setPendingPhone(phone);
       setPendingUsername(username);
-      
+
       // Simulate API call
       await new Promise((resolve) => setTimeout(resolve, 1000));
-      
+
       toast({
         title: "OTP Sent",
         description: "Please enter the OTP sent to your mobile number to complete registration",
       });
-      
+
       return true;
     } catch (error) {
       toast({
@@ -156,12 +156,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUser(newUser);
       setPendingPhone(null);
       setPendingUsername(null);
-      
+
       toast({
         title: "Success!",
         description: "You have been logged in successfully.",
       });
-      
+
       // Redirect to dashboard
       navigate("/dashboard");
       return true;
@@ -189,11 +189,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Update profile function
   const updateProfile = (userData: Partial<User>) => {
     if (!user) return;
-    
+
     const updatedUser = { ...user, ...userData };
     localStorage.setItem("user", JSON.stringify(updatedUser));
     setUser(updatedUser);
-    
+
     toast({
       title: "Profile Updated",
       description: "Your profile has been updated successfully.",

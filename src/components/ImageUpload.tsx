@@ -5,12 +5,14 @@ import { Image, X, RotateCw } from "lucide-react";
 
 interface ImageUploadProps {
   onImageChange: (base64Image: string | null) => void;
-  isClear: any;
+  isClear: boolean;
+  className?: string;
 }
 
 const ImageUpload: React.FC<ImageUploadProps> = ({
   onImageChange,
   isClear,
+  className,
 }) => {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -47,12 +49,11 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
   };
 
   return (
-    <div className="space-y-2">
+    <div className={`space-y-2 ${className}`}>
       {/* Image Box - Clickable when empty */}
       <div
-        className={`border border-app-purple/20 rounded-lg p-2 bg-white relative ${
-          !previewUrl ? "cursor-pointer hover:bg-gray-50" : ""
-        }`}
+        className={`border border-app-purple/20 rounded-lg p-2 bg-white relative ${!previewUrl ? "cursor-pointer hover:bg-gray-50" : ""
+          }`}
         onClick={!previewUrl ? triggerFileSelection : undefined}
       >
         <div className="overflow-hidden bg-muted h-[200px]">
@@ -95,8 +96,8 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
               </div>
             </>
           ) : (
-            <div className="flex flex-col items-center justify-center w-full h-full bg-app-light">
-              <Image size={48} className="text-app-purple/40" />
+            <div className="flex flex-col items-center justify-center w-full h-full bg-[#F6861F]/5">
+              <Image size={36} className="text-app-purple/40" />
               <p className="mt-2 text-sm text-muted-foreground">Click Here To Upload Image</p>
             </div>
           )}

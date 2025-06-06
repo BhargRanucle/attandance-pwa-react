@@ -91,36 +91,24 @@ const EmergencyLogs = () => {
         {/* Submit Emergency Log Card */}
         <div className="">
           <Card className="overflow-hidden border-none shadow-lg">
-            <div className="bg-gradient-to-r from-app-red/80 to-app-purple/80 p-1"></div>
-            <CardHeader className="bg-gradient-to-b from-app-light to-transparent pb-2 px-4">
+            <div className="bg-gradient-to-r from-app-purple/100 to-app-blue p-1"></div>
+            <CardHeader className="bg-gradient-to-b from-app-purple-light/10 to-transparent pb-2">
               <div className="flex items-center gap-2">
-                <AlertTriangle className="text-app-red" size={20} />
+                <AlertTriangle className="text-app-purple" size={25} />
                 <div>
-                  <CardTitle className="text-lg font-medium">
+                  <CardTitle className="text-lg font-bold">
                     Submit Emergency Log
                   </CardTitle>
-                  <CardDescription>
-                    Request log for emergencies or absences
-                  </CardDescription>
                 </div>
+              </div>
+              <div>
+                <CardDescription className="text-left">
+                  Request log for emergencies or absences
+                </CardDescription>
               </div>
             </CardHeader>
             <CardContent className="p-5">
               <form onSubmit={handleSubmit} className="space-y-4">
-                {/* <div className="space-y-2">
-                  <Label htmlFor="date" className="flex items-center gap-1">
-                    <Calendar size={16} className="text-app-purple" />
-                    <span>Date</span>
-                  </Label>
-                  <Input
-                    id="date"
-                    type="date"
-                    value={date}
-                    onChange={(e) => setDate(e.target.value)}
-                    required
-                    className="border-app-purple/20 focus:border-app-purple/50"
-                  />
-                </div> */}
 
                 <div className="space-y-2">
                   <Label className="flex items-center gap-1">
@@ -144,33 +132,16 @@ const EmergencyLogs = () => {
                     value={reason}
                     onChange={(e) => setReason(e.target.value)}
                     required
-                    className="min-h-[100px] border-app-purple/20 focus:border-app-purple/50"
+                    className="min-h-[100px] bg-[#F6861F]/5 border-app-purple/20"
                   />
                 </div>
 
-                {/* <div className="space-y-2">
-                  <Label htmlFor="hours" className="flex items-center gap-1">
-                    <Clock size={16} className="text-app-purple" />
-                    <span>Hours Requested</span>
-                  </Label>
-                  <Input
-                    id="hours"
-                    type="number"
-                    min="1"
-                    max="24"
-                    value={hours}
-                    onChange={(e) => setHours(parseInt(e.target.value))}
-                    required
-                    className="border-app-purple/20 focus:border-app-purple/50"
-                  />
-                </div> */}
-
                 <Button
                   type="submit"
-                  className="w-full bg-gradient-to-r from-app-purple to-app-red hover:opacity-90 py-6"
+                  className="w-full font-bold bg-gradient-to-b from-app-purple to-app-purple-dark py-6"
                   disabled={isSubmitting}
                 >
-                  <AlertTriangle className="mr-2" size={18} />
+                  <AlertTriangle className="mr-0" size={18} />
                   {isSubmitting ? "Submitting..." : "Submit Request"}
                 </Button>
               </form>
@@ -181,11 +152,11 @@ const EmergencyLogs = () => {
         {/* Emergency Log History Card */}
         <div className="" style={{ animationDelay: "0.1s" }}>
           <Card className="overflow-hidden border-none shadow-lg">
-            <div className="bg-gradient-to-r from-app-purple/80 to-app-red/80 p-1"></div>
-            <CardHeader className="bg-gradient-to-b from-app-light to-transparent pb-2 px-4">
+            <div className="bg-gradient-to-r from-app-purple/100 to-app-blue p-1"></div>
+            <CardHeader className="bg-gradient-to-b from-app-purple-light/10 to-transparent pb-2">
               <div className="flex items-center gap-2">
-                <History className="text-app-purple-dark" size={20} />
-                <CardTitle className="text-lg font-medium">
+                <History className="text-app-purple" size={25} />
+                <CardTitle className="text-lg font-bold">
                   Log History
                 </CardTitle>
               </div>
@@ -210,7 +181,7 @@ const EmergencyLogs = () => {
                       className="py-2 px-2 bg-gradient-to-br from-white to-app-light rounded-lg shadow-sm"
                     >
                       <div className="text-sm">
-                        <p className="text-app-purple-dark font-medium">
+                        <p className="text-app-purple font-medium">
                           {log.reason}
                         </p>
                       </div>
@@ -237,10 +208,10 @@ const EmergencyLogs = () => {
                     </div>
                   ))
                 ) : (
-                  <div className="text-center py-8 bg-app-light/50 rounded-lg">
+                  <div className="text-center py-8 bg-[#F6861F]/5 rounded-lg">
                     <AlertTriangle
                       size={36}
-                      className="text-app-gray/40 mx-auto mb-2"
+                      className="text-app-purple/40 mx-auto mb-2"
                     />
                     <p className="text-muted-foreground">
                       No emergency logs found in the selected date range.
