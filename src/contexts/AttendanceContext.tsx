@@ -155,43 +155,47 @@ export const AttendanceProvider: React.FC<{ children: React.ReactNode }> = ({
   // ---- location-tracking helpers ----
   const locationTimerRef = useRef<NodeJS.Timeout | null>(null);
 
+  /** Send one ping to the SW queue (or fall back to direct POST) */
+  const enqueueLocation = async (latitude: number, longitude: number) => {
+    const payload = {
+      uuid: user.uuid,
+      name: user.name ?? '',
+      latitude: latitude.toString(),
+      longitude: longitude.toString(),
+      token,
+    };
+
+    if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+      // Wait for the SW to be ready
+      const registration = await navigator.serviceWorker.ready;
+      registration.active?.postMessage({
+        type: 'ENQUEUE_LOCATION',
+        data: payload,
+      });
+    } else {
+      // Fallback to direct fetch
+      await axios.post(`${API_URL}add-staff-location`, payload, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+    }
+  };
+
   /** Hit /staff-locations with current browser coordinates */
   const sendLocationPing = async () => {
     if (!user) return;
 
-    // Check if at least 5 minutes have passed since last ping
-    const lastPing = localStorage.getItem('lastLocationPing');
-    const now = Date.now();
-
-    if (lastPing && now - parseInt(lastPing) < 300000) {
-      return; // Not enough time has passed
-    }
-
-    // 1) Get position
-    const getCoords = (): Promise<GeolocationPosition> =>
-      new Promise((res, rej) =>
+    try {
+      const pos = await new Promise<GeolocationPosition>((res, rej) =>
         navigator.geolocation.getCurrentPosition(res, rej, {
           enableHighAccuracy: true,
-          timeout: 10_000,
+          timeout: 10000,
         })
       );
 
-    try {
-      const pos = await getCoords();
-      const { latitude, longitude } = pos.coords;
-      await axios.post(
-        `${API_URL}add-staff-location`,
-        {
-          uuid: user.uuid,
-          name: user.name || "",
-          latitude: latitude.toString(),
-          longitude: longitude.toString(),
-        },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-      localStorage.setItem('lastLocationPing', now.toString());
+      await enqueueLocation(pos.coords.latitude, pos.coords.longitude);
+      localStorage.setItem('lastLocationPing', Date.now().toString());
     } catch (err) {
-      console.error("Location ping failed →", err);
+      console.error('Location ping failed', err);
     }
   };
 
@@ -201,16 +205,15 @@ export const AttendanceProvider: React.FC<{ children: React.ReactNode }> = ({
     if (locationTimerRef.current) {
       clearInterval(locationTimerRef.current);
     }
-
+    sendLocationPing().catch(console.error);
     // Don't send immediately on refresh
-    // Only start the interval for future pings
     locationTimerRef.current = setInterval(() => {
       if (localStorage.getItem('isTrackingLocation') === 'true') {
-        sendLocationPing();
+        sendLocationPing().catch(console.error);
       } else {
         stopLocationTracking();
       }
-    }, 300000); // 5 minutes
+    }, 60_000); // 5 minutes
   };
 
   /** Clear the interval if one exists */
@@ -364,6 +367,15 @@ export const AttendanceProvider: React.FC<{ children: React.ReactNode }> = ({
     return () => clearInterval(id);
   }, [todayLogs, currentLog, lastPunchType]);
 
+  useEffect(() => {
+    // Register service worker on mount
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/service-worker.js').catch(err => {
+        console.error('Service Worker registration failed:', err);
+      });
+    }
+  }, []);
+
   const checkIn = async () => {
     if (!user) return;
 
@@ -393,13 +405,12 @@ export const AttendanceProvider: React.FC<{ children: React.ReactNode }> = ({
         { headers: { Authorization: `Bearer ${token}` } }
       );
       localStorage.setItem('isTrackingLocation', 'true');
-      localStorage.setItem('lastLocationPing', Date.now().toString());
       setAllLogs((prev) => [...prev, newLog]);
       setCurrentLog(newLog);
       setLastPunchType("check-in");
-      await fetchTimeLogs();
-      await sendLocationPing();
       startLocationTracking();
+      await sendLocationPing();
+      await fetchTimeLogs();
       const todayIso = new Date().toISOString().split("T")[0];
       const start = rangeStart || todayIso;
       const end = rangeEnd || todayIso;
