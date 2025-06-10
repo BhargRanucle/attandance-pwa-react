@@ -3,12 +3,13 @@ import { Navigate } from "react-router-dom";
 import { format } from "date-fns";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Clock, Calendar, Pause, LogOut, History } from "lucide-react";
+import { Clock, Calendar, Pause, LogOut, History, AlarmClock } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useAttendance } from "@/contexts/AttendanceContext";
 import Layout from "@/components/Layout";
 import DateRangePicker from "@/components/DateRangePicker";
 import TimeDisplay from "@/components/TimeDisplay";
+import Loader from '../components/Loader';
 
 const TimeLogs = () => {
   const { user } = useAuth();
@@ -55,31 +56,28 @@ const TimeLogs = () => {
     return <Navigate to="/" replace />;
   }
 
+  if (isLoading) {
+    return <Loader />;
+  }
+
   return (
     <Layout title="Time Logs">
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-2 gap-4">
         {/* Current Status Card */}
         <div className="">
           <Card className="overflow-hidden border-none shadow-lg">
-            <div className="bg-gradient-to-r from-app-purple to-app-blue p-1"></div>
-            <CardHeader className="bg-gradient-to-b from-app-purple-light/30 to-transparent pb-2 px-4">
+            <div className="bg-gradient-to-r from-app-purple/100 to-app-blue p-1"></div>
+            <CardHeader className="bg-gradient-to-b from-app-purple-light/10 to-transparent pb-2">
               <div className="flex items-center gap-2">
-                <Clock className="text-app-purple" size={20} />
-                <CardTitle className="text-lg font-medium">
+                <Clock className="text-app-purple" size={25} />
+                <CardTitle className="text-lg font-bold">
                   Current Status
                 </CardTitle>
               </div>
             </CardHeader>
             <CardContent className="p-4">
               <div className="mb-6 text-center py-2">
-                {isLoading ? (
-                  <div className="py-6">
-                    <div className="w-24 h-24 mx-auto bg-app-light rounded-full flex items-center justify-center shadow-inner">
-                      <Clock size={48} className="text-app-gray animate-pulse" />
-                    </div>
-                    <p className="text-muted-foreground mt-4">Loading time data...</p>
-                  </div>
-                ) : isCheckedIn ? (
+                {isCheckedIn ? (
                   <>
                     <p className="text-sm text-muted-foreground mb-1">Working Time</p>
                     <div className="bg-gradient-to-br from-app-purple-light to-white p-5 rounded-full inline-block shadow-inner">
@@ -92,10 +90,10 @@ const TimeLogs = () => {
                   </>
                 ) : (
                   <div className="py-6">
-                    <div className="w-24 h-24 mx-auto bg-app-light rounded-full flex items-center justify-center shadow-inner">
-                      <Clock size={48} className="text-app-gray" />
+                    <div className="w-24 h-24 mx-auto bg-gradient-to-b from-app-purple to-app-purple-dark rounded-full flex items-center justify-center shadow-inner">
+                      <Clock size={50} className="text-app-white" />
                     </div>
-                    <p className="text-muted-foreground mt-4">
+                    <p className="text-muted-foreground mt-2">
                       You are not checked in
                     </p>
                   </div>
@@ -106,9 +104,9 @@ const TimeLogs = () => {
                 {!isCheckedIn ? (
                   <Button
                     onClick={checkIn}
-                    className="log-button bg-gradient-to-r from-app-purple to-app-blue hover:opacity-90 col-span-2 py-6"
+                    className="log-button font-bold bg-gradient-to-b from-app-purple to-app-purple-dark col-span-2 py-6"
                   >
-                    <Clock className="mr-2" size={20} />
+                    <AlarmClock className="mr-0" size={25} />
                     Check In
                   </Button>
                 ) : (
@@ -154,24 +152,22 @@ const TimeLogs = () => {
         {/* Log History Card */}
         <div className="" style={{ animationDelay: "0.1s" }}>
           <Card className="overflow-hidden border-none shadow-lg">
-            <div className="bg-gradient-to-r from-app-blue to-app-purple p-1"></div>
-            <CardHeader className="bg-gradient-to-b from-app-light to-transparent pb-2 px-4">
+            <div className="bg-gradient-to-r from-app-purple/100 to-app-blue p-1"></div>
+            <CardHeader className="bg-gradient-to-b from-app-purple-light/10 to-transparent pb-2">
               <div className="flex items-center gap-2">
-                <History className="text-app-blue" size={20} />
-                <CardTitle className="text-lg font-medium">
+                <History className="text-app-purple" size={25} />
+                <CardTitle className="text-lg font-bold">
                   Log History
                 </CardTitle>
               </div>
             </CardHeader>
             <CardContent className="p-4">
               <div className="mb-4">
-                <p className="text-sm text-muted-foreground mb-2">
-                  Select date range
-                </p>
                 <DateRangePicker
                   startDate={rangeStart ? new Date(rangeStart) : undefined}
                   endDate={rangeEnd ? new Date(rangeEnd) : undefined}
                   onDateChange={handleDateRangeChange}
+                  className=""
                 />
               </div>
 
@@ -188,17 +184,20 @@ const TimeLogs = () => {
                     return (
                       <div
                         key={log.id}
-                        className="p-4 bg-gradient-to-br from-white to-app-purple-light/95 rounded-lg shadow-sm"
+                        className="p-4 bg-gradient-to-br from-white to-app-purple-light/30 rounded-lg shadow-sm"
                       >
                         <div className="flex justify-between items-center">
                           <div className="flex items-center gap-2">
-                            <Calendar size={16} className="text-app-purple-dark" />
-                            <p className="font-medium">
+                            <Calendar
+                              size={16}
+                              className="text-app-purple"
+                            />
+                            <p className="text-[#222222]">
                               {format(new Date(log.date), "EEE, MMM d")}
                             </p>
                           </div>
-                          <div className="bg-app-purple/10 px-2 py-1 rounded-full">
-                            <p className="text-xs font-medium text-app-purple">
+                          <div className="orange-background bg-gradient-to-b from-app-purple to-app-purple-dark px-2 py-1 rounded-full">
+                            <p className="text-xs font-medium text-white">
                               {workHours}h {workMinutes}m
                             </p>
                           </div>

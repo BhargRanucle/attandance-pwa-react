@@ -3,12 +3,10 @@ const CACHE_NAME = "react-pwa-cache-v2";
 const LOCATION_QUEUE = "location-queue";
 const AUTH_CACHE = "auth-cache";
 const OFFLINE_FALLBACK = "/offline.html";
-
 const LOCATION_API_URL = self.location.hostname === "localhost"
   ? "http://localhost:8000/api/app/add-staff-location"
   : "/api/app/add-staff-location";
 
-/* ---------- install ---------- */
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME)
@@ -31,10 +29,10 @@ self.addEventListener('activate', (event) => {
     caches.keys().then(cacheNames => {
       return Promise.all(
         cacheNames.map(cacheName => {
-          if ([CACHE_NAME, LOCATION_QUEUE, AUTH_CACHE].includes(cacheName)) {
-            return null;
+          if (![CACHE_NAME, LOCATION_QUEUE, AUTH_CACHE].includes(cacheName)) {
+            return caches.delete(cacheName);
           }
-          return caches.delete(cacheName);
+          return Promise.resolve();
         })
       );
     }).then(() => self.clients.claim())
@@ -45,17 +43,23 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('message', (event) => {
   if (event.data.type === 'ENQUEUE_LOCATION') {
     event.waitUntil(handleLocationMessage(event.data.data));
+  } else if (event.data.type === 'SAVE_AUTH_TOKEN') {
+    event.waitUntil(saveAuthTokenInCache(event.data.token));
   }
 });
 
 async function handleLocationMessage(data) {
   try {
-    // Try to send immediately
+    const token = await getAuthToken();
+    if (!token) {
+      console.warn("No auth token available in service worker. Enqueuing location.");
+      return addToLocationQueue(data);
+    }
     const response = await fetch(LOCATION_API_URL, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${data.token}`
+        'Authorization': `Bearer ${token}`
       },
       body: JSON.stringify({
         uuid: data.uuid,
@@ -65,14 +69,13 @@ async function handleLocationMessage(data) {
       }),
       keepalive: true
     });
-
     if (!response.ok) {
-      throw new Error('Network response was not ok');
+      throw new Error(`Network response was not ok: ${response.status}`);
     }
+    console.log('Location sent successfully:', await response.json());
     return response;
   } catch (error) {
-    // If fails, add to queue
-    console.log('Adding location to queue', error);
+    console.error('Failed to send location immediately, adding to queue:', error);
     return addToLocationQueue(data);
   }
 }
@@ -85,35 +88,46 @@ async function addToLocationQueue(data) {
     new Request(`location-${id}`),
     new Response(JSON.stringify(data))
   );
-
-  // Register for sync if available
+  console.log(`Location data for ID ${id} added to queue.`);
   if ('sync' in self.registration) {
     try {
       await self.registration.sync.register('location-sync');
+      console.log('One-off sync registered for location updates.');
     } catch (err) {
       console.warn('Sync registration failed:', err);
     }
   }
-
-  return new Response(JSON.stringify({ queued: true }));
+  return new Response(JSON.stringify({ queued: true, id: id }));
 }
 
 async function processLocationQueue() {
+  console.log('Processing location queue...');
   const cache = await caches.open(LOCATION_QUEUE);
   const requests = await cache.keys();
-
+  if (requests.length === 0) {
+    console.log('Location queue is empty.');
+    return;
+  }
+  const token = await getAuthToken();
+  if (!token) {
+    console.warn('No auth token available, cannot process location queue. Will retry later.');
+    throw new Error('Auth token not found during queue processing.');
+  }
   for (const request of requests) {
     try {
       const response = await cache.match(request);
-      if (!response) continue;
-
+      if (!response) {
+        console.warn(`No response found for cached request: ${request.url}`);
+        await cache.delete(request);
+        continue;
+      }
       const data = await response.json();
-
+      console.log('Attempting to send queued location:', data);
       const res = await fetch(LOCATION_API_URL, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${data.token}`
+          'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({
           uuid: data.uuid,
@@ -123,33 +137,37 @@ async function processLocationQueue() {
         }),
         keepalive: true
       });
-
       if (res.ok) {
+        console.log(`Successfully sent queued location for ${request.url}`);
         await cache.delete(request);
       } else {
-        throw new Error(`HTTP ${res.status}`);
+        throw new Error(`HTTP ${res.status} when processing queue`);
       }
     } catch (error) {
-      console.error('Failed to process location:', error);
+      console.error(`Failed to process location for ${request.url}:`, error);
       throw error;
     }
   }
+  console.log('Finished processing location queue.');
 }
 
 /* ---------- event listeners ---------- */
 self.addEventListener('sync', (event) => {
   if (event.tag === 'location-sync') {
+    console.log('Sync event received for location-sync.');
     event.waitUntil(processLocationQueue());
   }
 });
 
 self.addEventListener('periodicsync', (event) => {
   if (event.tag === 'periodic-location-sync') {
+    console.log('Periodic Sync event received for periodic-location-sync.');
     event.waitUntil(processLocationQueue());
   }
 });
 
 self.addEventListener('online', () => {
+  console.log('Browser is back online.');
   if ('sync' in self.registration) {
     self.registration.sync.register('location-sync')
       .catch(err => console.warn('Online sync registration failed:', err));
@@ -159,14 +177,10 @@ self.addEventListener('online', () => {
 /* ---------- fetch handler ---------- */
 self.addEventListener('fetch', (event) => {
   const { request } = event;
-
-  // Handle location POSTs
   if (request.url.includes('/add-staff-location') && request.method === 'POST') {
     event.respondWith(handleLocationFetch(request));
     return;
   }
-
-  // Cache-first strategy for other requests
   event.respondWith(
     caches.match(request)
       .then(cached => cached || fetch(request))
@@ -179,9 +193,10 @@ async function handleLocationFetch(request) {
     const response = await fetch(request.clone());
     return response;
   } catch (error) {
-    const data = await request.json();
-    const token = await getAuthToken();
-    return addToLocationQueue({ ...data, token });
+    console.error('Fetch failed for location API, trying to enqueue:', error);
+    const requestData = await request.clone().json();
+    const token = await getAuthToken(); 
+    return addToLocationQueue({ ...requestData, token });
   }
 }
 
@@ -189,7 +204,21 @@ async function handleLocationFetch(request) {
 async function getAuthToken() {
   const cache = await caches.open(AUTH_CACHE);
   const response = await cache.match('/auth-token');
-  if (!response) return null;
-  const { token } = await response.json();
-  return token;
+  if (!response) {
+    console.warn('Auth token not found in cache.');
+    return null;
+  }
+  try {
+    const { token } = await response.json();
+    return token;
+  } catch (e) {
+    console.error('Failed to parse auth token from cache:', e);
+    return null;
+  }
+}
+
+async function saveAuthTokenInCache(token) {
+  const cache = await caches.open(AUTH_CACHE);
+  await cache.put(new Request('/auth-token'), new Response(JSON.stringify({ token })));
+  console.log('Auth token saved in service worker cache.');
 }

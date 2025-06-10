@@ -19,26 +19,17 @@ interface TimeLog {
   date: string;
   status: "active" | "completed";
 }
-interface EmergencyLog {
-  id: string;
-  userId: string;
-  date: string;
-  reason: string;
-  status: "pending" | "approved" | "rejected";
-}
 type PunchType = "check-in" | "check-out" | null;
 
 interface AttendanceContextType {
   currentLog: TimeLog | null;
   todayLogs: TimeLog[];
   allLogs: TimeLog[];
-  emergencyLogs: EmergencyLog[];
   isCheckedIn: boolean;
   elapsedTime: number;
   totalBreakTimeToday: number;
   checkIn: () => Promise<void>;
   checkOut: () => Promise<void>;
-  submitEmergencyLog: (d: string, r: string, img?: string) => void;
   getWeeklySummary: () => {
     totalHours: number;
     presentDays: number;
@@ -46,7 +37,6 @@ interface AttendanceContextType {
     totalBreakTime: number;
   };
   getFilteredLogs: (s: string, e: string) => TimeLog[];
-  getFilteredEmergencyLogs: (s: string, e: string) => EmergencyLog[];
   earliestCheckInTime: Date | null;
   lastPunchType: PunchType;
   isLoading: boolean;
@@ -65,13 +55,11 @@ const AttendanceContext = createContext<AttendanceContextType>({
   currentLog: null,
   todayLogs: [],
   allLogs: [],
-  emergencyLogs: [],
   isCheckedIn: false,
   elapsedTime: 0,
   totalBreakTimeToday: 0,
   checkIn: async () => { },
   checkOut: async () => { },
-  submitEmergencyLog: () => { },
   getWeeklySummary: () => ({
     totalHours: 0,
     presentDays: 0,
@@ -79,7 +67,6 @@ const AttendanceContext = createContext<AttendanceContextType>({
     totalBreakTime: 0,
   }),
   getFilteredLogs: () => [],
-  getFilteredEmergencyLogs: () => [],
   earliestCheckInTime: null,
   lastPunchType: null,
   isLoading: false,
@@ -99,10 +86,8 @@ export const AttendanceProvider: React.FC<{ children: React.ReactNode }> = ({
   const { user } = useAuth();
   const API_URL = import.meta.env.VITE_BASE_URL;
   const token = localStorage.getItem("staffuser_token");
-
   const [currentLog, setCurrentLog] = useState<TimeLog | null>(null);
   const [allLogs, setAllLogs] = useState<TimeLog[]>([]);
-  const [emergencyLogs, setEmergencyLogs] = useState<EmergencyLog[]>([]);
   const [elapsedTime, setElapsedTime] = useState(0);
   const [totalBreakTimeToday, setTotalBreakTimeToday] = useState(0);
   const [lastPunchType, setLastPunchType] = useState<PunchType>(null);
@@ -114,7 +99,6 @@ export const AttendanceProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const checkLocationPermission = async (): Promise<boolean> => {
     if (!navigator.geolocation || !navigator.permissions) return false;
-
     try {
       const status = await navigator.permissions.query({ name: "geolocation" as PermissionName });
       if (status.state === "granted") return true;
@@ -136,7 +120,6 @@ export const AttendanceProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const requestLocationPermission = async () => {
     if (!navigator.geolocation) return;
-
     try {
       await new Promise<GeolocationPosition>((resolve, reject) =>
         navigator.geolocation.getCurrentPosition(resolve, reject, {
@@ -144,10 +127,8 @@ export const AttendanceProvider: React.FC<{ children: React.ReactNode }> = ({
           timeout: 10000,
         })
       );
-      // success → hide modal
       setLocationBlocked(false);
     } catch (err) {
-      // still blocked → keep modal
       setLocationBlocked(true);
     }
   };
@@ -155,65 +136,52 @@ export const AttendanceProvider: React.FC<{ children: React.ReactNode }> = ({
   // ---- location-tracking helpers ----
   const locationTimerRef = useRef<NodeJS.Timeout | null>(null);
 
-  /** Send one ping to the SW queue (or fall back to direct POST) */
-  const enqueueLocation = async (latitude: number, longitude: number) => {
-    const payload = {
-      uuid: user.uuid,
-      name: user.name ?? '',
-      latitude: latitude.toString(),
-      longitude: longitude.toString(),
-      token,
-    };
-
-    if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
-      // Wait for the SW to be ready
-      const registration = await navigator.serviceWorker.ready;
-      registration.active?.postMessage({
-        type: 'ENQUEUE_LOCATION',
-        data: payload,
-      });
-    } else {
-      // Fallback to direct fetch
-      await axios.post(`${API_URL}add-staff-location`, payload, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-    }
-  };
-
   /** Hit /staff-locations with current browser coordinates */
   const sendLocationPing = async () => {
     if (!user) return;
-
-    try {
-      const pos = await new Promise<GeolocationPosition>((res, rej) =>
+    const lastPing = localStorage.getItem('lastLocationPing');
+    const now = Date.now();
+    if (lastPing && now - parseInt(lastPing) < 300_000) {
+      return;
+    }
+    const getCoords = (): Promise<GeolocationPosition> =>
+      new Promise((res, rej) =>
         navigator.geolocation.getCurrentPosition(res, rej, {
           enableHighAccuracy: true,
-          timeout: 10000,
+          timeout: 10_000,
         })
       );
-
-      await enqueueLocation(pos.coords.latitude, pos.coords.longitude);
-      localStorage.setItem('lastLocationPing', Date.now().toString());
+    try {
+      const pos = await getCoords();
+      const { latitude, longitude } = pos.coords;
+      await axios.post(
+        `${API_URL}add-staff-location`,
+        {
+          uuid: user.uuid,
+          name: user.name || "",
+          latitude: latitude.toString(),
+          longitude: longitude.toString(),
+        },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      localStorage.setItem('lastLocationPing', now.toString());
     } catch (err) {
-      console.error('Location ping failed', err);
+      console.error("Location ping failed →", err);
     }
   };
 
   /** Start an interval that pings every 5 min until stopped */
   const startLocationTracking = () => {
-    // Clear any existing interval
     if (locationTimerRef.current) {
       clearInterval(locationTimerRef.current);
     }
-    sendLocationPing().catch(console.error);
-    // Don't send immediately on refresh
     locationTimerRef.current = setInterval(() => {
       if (localStorage.getItem('isTrackingLocation') === 'true') {
-        sendLocationPing().catch(console.error);
+        sendLocationPing();
       } else {
         stopLocationTracking();
       }
-    }, 60_000); // 5 minutes
+    }, 300_000);
   };
 
   /** Clear the interval if one exists */
@@ -241,7 +209,6 @@ export const AttendanceProvider: React.FC<{ children: React.ReactNode }> = ({
     const realTimes = todayLogs
       .filter((l) => l.checkInTime)
       .map((l) => new Date(l.checkInTime!).getTime());
-
     if (!realTimes.length) return null;
     return new Date(Math.min(...realTimes));
   }, [todayLogs]);
@@ -261,15 +228,12 @@ export const AttendanceProvider: React.FC<{ children: React.ReactNode }> = ({
         { headers: { Authorization: `Bearer ${token}` } }
       );
       const logs: TimeLog[] = (data?.data || []).map((row: any) => {
-        let breakSecs = 0;
-        let lastOut: Date | null = null;
         let totalWorkSecs = 0;
         let totalBreakSecs = 0;
         let lastCheckOut: Date | null = null;
         let currentCheckIn: Date | null = null;
         row.punches?.forEach((p: any) => {
           const punchTime = new Date(toLocalIso(p.timestamp)!);
-
           if (p.type === "check-in") {
             if (lastCheckOut) {
               totalBreakSecs += (punchTime.getTime() - lastCheckOut.getTime()) / 1000;
@@ -277,14 +241,12 @@ export const AttendanceProvider: React.FC<{ children: React.ReactNode }> = ({
             }
             currentCheckIn = punchTime;
           }
-
           if (p.type === "check-out" && currentCheckIn) {
             totalWorkSecs += (punchTime.getTime() - currentCheckIn.getTime()) / 1000;
             currentCheckIn = null;
             lastCheckOut = punchTime;
           }
         });
-
         return {
           id: `log-${row.date}`,
           userId: user.id,
@@ -295,15 +257,12 @@ export const AttendanceProvider: React.FC<{ children: React.ReactNode }> = ({
           status: currentCheckIn ? "active" : "completed",
         };
       });
-
       setAllLogs(logs);
-
       const today = new Date().toISOString().split("T")[0];
       const todayRow = data?.data?.find((r: any) => r.date === today);
       if (todayRow) {
         const lastPunch = todayRow.punches.at(-1);
         setLastPunchType(lastPunch?.type ?? null);
-
         if (lastPunch?.type === "check-in") {
           setCurrentLog({
             id: `log-${todayRow.punches.length}`,
@@ -331,20 +290,15 @@ export const AttendanceProvider: React.FC<{ children: React.ReactNode }> = ({
   useEffect(() => {
     if (user?.id) {
       fetchTimeLogs().then(() => {
-        // After fetching logs, check if we should resume tracking
         if (lastPunchType === "check-in" && localStorage.getItem('isTrackingLocation') === 'true') {
-          // Don't send immediately on refresh
-          // Just start the interval for future pings
           startLocationTracking();
         }
       });
     }
-
     return () => {
       stopLocationTracking();
     };
   }, [user]);
-
   useEffect(() => {
     const tick = () => {
       const closedSecs = todayLogs.reduce((sum, log) => {
@@ -367,26 +321,14 @@ export const AttendanceProvider: React.FC<{ children: React.ReactNode }> = ({
     return () => clearInterval(id);
   }, [todayLogs, currentLog, lastPunchType]);
 
-  useEffect(() => {
-    // Register service worker on mount
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/service-worker.js').catch(err => {
-        console.error('Service Worker registration failed:', err);
-      });
-    }
-  }, []);
-
   const checkIn = async () => {
     if (!user) return;
-
     const hasPermission = await checkLocationPermission();
     if (!hasPermission) {
       setLocationBlocked(true);
       return;
     }
-
     setLocationBlocked(false);
-
     const now = new Date().toISOString();
     const newLog: TimeLog = {
       id: `log-${Date.now()}`,
@@ -397,7 +339,6 @@ export const AttendanceProvider: React.FC<{ children: React.ReactNode }> = ({
       date: new Date().toISOString().split("T")[0],
       status: "active",
     };
-
     try {
       await axios.post(
         `${API_URL}add-timelogs`,
@@ -405,12 +346,13 @@ export const AttendanceProvider: React.FC<{ children: React.ReactNode }> = ({
         { headers: { Authorization: `Bearer ${token}` } }
       );
       localStorage.setItem('isTrackingLocation', 'true');
+      localStorage.setItem('lastLocationPing', Date.now().toString());
       setAllLogs((prev) => [...prev, newLog]);
       setCurrentLog(newLog);
       setLastPunchType("check-in");
-      startLocationTracking();
-      await sendLocationPing();
       await fetchTimeLogs();
+      await sendLocationPing();
+      startLocationTracking();
       const todayIso = new Date().toISOString().split("T")[0];
       const start = rangeStart || todayIso;
       const end = rangeEnd || todayIso;
@@ -422,15 +364,12 @@ export const AttendanceProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const checkOut = async () => {
     if (!user || lastPunchType !== "check-in" || !currentLog) return;
-
     const hasPermission = await checkLocationPermission();
     if (!hasPermission) {
       setLocationBlocked(true);
       return;
     }
-
     setLocationBlocked(false);
-
     const now = new Date().toISOString();
     try {
       await axios.post(
@@ -502,28 +441,13 @@ export const AttendanceProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   };
 
-  const submitEmergencyLog = (d: string, r: string) => {
-    setEmergencyLogs((e) => [
-      ...e,
-      {
-        id: Math.random().toString(36).slice(2, 9),
-        userId: user!.id,
-        date: d,
-        reason: r,
-        status: "pending",
-      },
-    ]);
-  };
-
   const getWeeklySummary = () => {
     const now = new Date();
     const weekAgo = new Date(now);
     weekAgo.setDate(now.getDate() - 7);
-
     const logs = allLogs.filter(
       (l) => new Date(l.date) >= weekAgo && new Date(l.date) <= now
     );
-
     const presentDays = new Set(logs.map((l) => l.date)).size;
     const totalSec = logs.reduce((s, l) => {
       if (l.status === "completed" && l.checkOutTime)
@@ -534,7 +458,6 @@ export const AttendanceProvider: React.FC<{ children: React.ReactNode }> = ({
           l.breakTime;
       return s;
     }, 0);
-
     return {
       totalHours: totalSec / 3600,
       presentDays,
@@ -545,37 +468,27 @@ export const AttendanceProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const getFilteredLogs = (s: string, e: string) =>
     allLogs.filter((l) => l.date >= s && l.date <= e);
-
-  const getFilteredEmergencyLogs = (s: string, e: string) =>
-    emergencyLogs.filter((l) => l.date >= s && l.date <= e);
-
   const isCheckedIn = lastPunchType === "check-in";
-
   useEffect(() => {
     if (lastPunchType === "check-in") startLocationTracking();
     else stopLocationTracking();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lastPunchType]);
 
   /* ---------- cleanup on unmount ---------- */
   useEffect(() => stopLocationTracking, []);
-
   return (
     <AttendanceContext.Provider
       value={{
         currentLog,
         todayLogs,
         allLogs,
-        emergencyLogs,
         isCheckedIn,
         elapsedTime,
         totalBreakTimeToday,
         checkIn,
         checkOut,
-        submitEmergencyLog,
         getWeeklySummary,
         getFilteredLogs,
-        getFilteredEmergencyLogs,
         earliestCheckInTime,
         lastPunchType,
         isLoading,

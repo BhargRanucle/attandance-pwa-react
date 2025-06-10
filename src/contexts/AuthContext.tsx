@@ -1,6 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { useToast } from "@/components/ui/use-toast";
 import axios from "axios";
 
 const API_URL = import.meta.env.VITE_BACKEND_APP_URL;
@@ -15,6 +14,7 @@ interface User {
   address?: string;
   profilePicture?: string;
   token: string;
+  image: string;
 }
 
 interface AuthContextType {
@@ -57,7 +57,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   });
   const [isLoading, setIsLoading] = useState(true);
   const [pendingPhone, setPendingPhone] = useState<string | null>(null);
-  const { toast } = useToast();
   const navigate = useNavigate();
 
   // We'll store the refresh timeout id here
@@ -88,7 +87,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const success = await refreshToken();
       if (!success) {
         logout();
-      }
+      } else {
+      scheduleRefresh(tokenToSchedule);
+    }
     }, refreshTime);
   }
 
@@ -125,6 +126,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         },
       });
       const newToken = res.data.data.token;
+      if (newToken) {
+        localStorage.setItem('auth-token', newToken);
+
+        if (navigator.serviceWorker?.controller) {
+          navigator.serviceWorker.controller.postMessage({
+            type: 'SAVE_AUTH_TOKEN',
+            token: newToken,
+          });
+        }
+      }
       setToken(newToken);
       localStorage.setItem("staffuser_token", newToken);
       scheduleRefresh(newToken);
@@ -192,11 +203,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     navigate("/");
   };
 
-  const updateProfile = (userData: Partial<User>) => {
-    if (!user) return;
-    const updatedUser = { ...user, ...userData };
-    localStorage.setItem("staffuser_data", JSON.stringify(updatedUser));
-    setUser(updatedUser);
+  const updateProfile = async (userData: Partial<User>) => {
+    if (!user || !token) return;
+    try {
+      const response = await axios.put(`${API_URL}api/app/staff-user-update/${user.id}`, userData, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      const updatedUser = response.data.data;
+      setUser(updatedUser);
+      localStorage.setItem("staffuser_data", JSON.stringify(updatedUser));
+    } catch (error) {
+      console.error("Failed to update profile:", error);
+    }
   };
 
   const isAuthenticated = !!user && !!token;
