@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/contexts/AuthContext";
-import { User, Phone } from "lucide-react";
+import { Phone } from "lucide-react";
 
 const Login = () => {
   const { isAuthenticated, login, verifyOtp, pendingPhone } = useAuth();
@@ -64,8 +64,8 @@ const Login = () => {
           <CardContent>
             {!otpSent ? (
               <form onSubmit={handleSendOtp} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="phone">Mobile Number</Label>
+                <div className="space-y-1 text-left pb-4">
+                  <Label htmlFor="phone" className="flex place-items-center"><Phone size={25} className="p-1 mr-1 text-app-purple" />Mobile Number</Label>
                   <Input
                     id="phone"
                     type="tel"
