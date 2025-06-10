@@ -79,8 +79,8 @@ const TimeLogs = () => {
               <div className="mb-6 text-center py-2">
                 {isCheckedIn ? (
                   <>
-                    <p className="text-sm text-muted-foreground mb-1">Working Time</p>
-                    <div className="bg-gradient-to-br from-app-purple-light to-white p-5 rounded-full inline-block shadow-inner">
+                    <p className="text-sm text-muted-foreground mb-5">Working Time</p>
+                    <div className="bg-[#222222]/10 text-black p-10 rounded-full inline-block shadow-inner">
                       <TimeDisplay
                         seconds={elapsedTime}
                         pulsing={true}
@@ -112,33 +112,33 @@ const TimeLogs = () => {
                 ) : (
                   <Button
                     onClick={checkOut}
-                    className="log-button bg-gradient-to-r from-app-red/90 to-app-red hover:opacity-90 py-4 col-span-2"
+                    className="log-button font-bold bg-gradient-to-t from-app-red to-app-red-dark col-span-2 py-6"
                   >
-                    <LogOut className="mr-2" size={18} />
+                    <LogOut className="mr-0" size={18} />
                     Check Out
                   </Button>
                 )}
               </div>
-              <div className="mt-6 p-4 bg-app-purple-light/20 rounded-lg shadow-sm">
+              <div className="mt-6">
                 <div className="flex justify-between items-center">
                   <div className="flex items-center gap-2">
                     <Clock size={16} className="text-app-purple" />
-                    <p className="text-sm text-app-purple-dark font-medium">
+                    <p className="text-[#222222]">
                       Check-in time
                     </p>
                   </div>
-                  <p className="font-medium">
+                  <p className="text-md font-semibold">
                     {earliestCheckInTime ? format(earliestCheckInTime, "h:mm a") : "--:--"}
                   </p>
                 </div>
                 <div className="flex justify-between items-center mt-2">
                   <div className="flex items-center gap-2">
                     <Pause size={16} className="text-app-purple" />
-                    <p className="text-sm text-app-purple-dark font-medium">
+                    <p className="text-[#222222]">
                       Break time
                     </p>
                   </div>
-                  <p className="font-medium">
+                  <p className="text-md font-semibold">
                     {totalBreakTimeToday
                       ? `${Math.floor(totalBreakTimeToday / 3600)}h ${Math.floor((totalBreakTimeToday % 3600) / 60)}m`
                       : "0h 0m"}
@@ -203,10 +203,10 @@ const TimeLogs = () => {
                           </div>
                         </div>
                         <div className="mt-2 flex justify-between text-sm">
-                          <span className="text-muted-foreground">
+                          <span className="text-[#222222]">
                             {checkInTime ? format(checkInTime, "h:mm a") : "--:--"} - {checkOutTime ? format(checkOutTime, "h:mm a") : "--:--"}
                           </span>
-                          <span className="text-muted-foreground">
+                          <span className="text-[#222222]">
                             Break: {formattedBreakTime}
                           </span>
                         </div>
