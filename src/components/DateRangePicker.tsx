@@ -8,19 +8,23 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { CalendarIcon } from "lucide-react";
-import { format } from "date-fns";
+import { format, addDays, subDays } from "date-fns";
 import { cn } from "@/lib/utils";
 
 interface DateRangePickerProps {
-  startDate: Date;
-  endDate: Date;
-  onDateChange: (start: Date, end: Date) => void;
+  startDate: Date | null;
+  endDate: Date | null;
+  onDateChange: (start: Date | null, end: Date | null) => void;
+  className?: string;
+  restrictTo30Days?: boolean;
 }
 
 const DateRangePicker = ({
   startDate,
   endDate,
   onDateChange,
+  className = "",
+  restrictTo30Days = false,
 }: DateRangePickerProps) => {
   const [isStartCalendarOpen, setIsStartCalendarOpen] = useState(false);
   const [isEndCalendarOpen, setIsEndCalendarOpen] = useState(false);
@@ -95,56 +99,63 @@ const DateRangePicker = ({
     //   </div>
     // </div>
 
-    <div className="grid grid-cols-6 gap-2 items-center">
-  <div className="col-span-3">
-    <Popover open={isStartCalendarOpen} onOpenChange={setIsStartCalendarOpen}>
-      <PopoverTrigger asChild>
-        <Button
-          variant="outline"
-          className={cn(
-            "w-full justify-start text-left font-normal",
-            !startDate && "text-muted-foreground"
-          )}
-        >
-          <CalendarIcon className="mr-0 h-4 w-4" />
-          {startDate ? format(startDate, "PPP") : "Pick a date"}
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent className="w-auto p-0" align="center">
-        <Calendar
-          mode="single"
-          selected={startDate}
-          onSelect={handleStartDateSelect}
-          initialFocus
-        />
-      </PopoverContent>
-    </Popover>
-  </div>
-  <div className="col-span-3">
-    <Popover open={isEndCalendarOpen} onOpenChange={setIsEndCalendarOpen}>
-      <PopoverTrigger asChild>
-        <Button
-          variant="outline"
-          className={cn(
-            "w-full justify-start text-left font-normal",
-            !endDate && "text-muted-foreground"
-          )}
-        >
-          <CalendarIcon className="mr-0 h-4 w-4" />
-          {endDate ? format(endDate, "PPP") : "Pick a date"}
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent className="w-auto p-0" align="center">
-        <Calendar
-          mode="single"
-          selected={endDate}
-          onSelect={handleEndDateSelect}
-          initialFocus
-        />
-      </PopoverContent>
-    </Popover>
-  </div>
-</div>
+    <div className={cn("relative", className)}>
+      <div className="grid grid-cols-6 gap-2 items-center">
+        <div className="col-span-3">
+          <Popover open={isStartCalendarOpen} onOpenChange={setIsStartCalendarOpen}>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                className={cn(
+                  "w-full justify-center text-white bg-gradient-to-b from-app-blue to-app-purple-dark border-none",
+                  !startDate && "text-white"
+                )}
+              >
+                <CalendarIcon className="mr-0 h-4 w-4" />
+                {startDate ? format(startDate, "PPP") : "Pick a date"}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="center">
+              <Calendar
+                mode="single"
+                selected={startDate}
+                onSelect={handleStartDateSelect}
+                fromDate={subDays(new Date(), 30)}
+                toDate={new Date()}
+                initialFocus
+              />
+            </PopoverContent>
+          </Popover>
+        </div>
+
+        <div className="col-span-3">
+          <Popover open={isEndCalendarOpen} onOpenChange={setIsEndCalendarOpen}>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                className={cn(
+                  "w-full justify-center text-white bg-gradient-to-b from-app-blue to-app-purple-dark border-none",
+                  !endDate && "text-white"
+                )}
+              >
+                <CalendarIcon className="mr-0 h-4 w-4" />
+                {endDate ? format(endDate, "PPP") : "Pick a date"}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="center">
+              <Calendar
+                mode="single"
+                selected={endDate}
+                onSelect={handleEndDateSelect}
+                fromDate={addDays(startDate, 0)}
+                toDate={addDays(startDate, 30)}
+                initialFocus
+              />
+            </PopoverContent>
+          </Popover>
+        </div>
+      </div>
+    </div>
 
 
   );

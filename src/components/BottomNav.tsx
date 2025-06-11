@@ -7,9 +7,9 @@ const BottomNav = () => {
   const path = location.pathname;
 
   return (
-    <nav className="sticky bottom-0 z-10 flex items-center bg-white border-t shadow-md">
-      <Link 
-        to="/dashboard" 
+    <nav className="sticky bottom-0 z-10 flex items-center bg-[#222222] shadow-md">
+      <Link
+        to="/dashboard"
         className={`nav-item ${path === "/dashboard" ? "active" : ""}`}
       >
         <div className={`relative ${path === "/dashboard" ? "p-2 bg-app-purple/10 rounded-full" : ""}`}>
@@ -20,9 +20,9 @@ const BottomNav = () => {
         </div>
         <span className={path === "/dashboard" ? "text-app-purple font-medium" : ""}>Dashboard</span>
       </Link>
-      
-      <Link 
-        to="/time-logs" 
+
+      <Link
+        to="/time-logs"
         className={`nav-item ${path === "/time-logs" ? "active" : ""}`}
       >
         <div className={`relative ${path === "/time-logs" ? "p-2 bg-app-purple/10 rounded-full" : ""}`}>
@@ -33,9 +33,9 @@ const BottomNav = () => {
         </div>
         <span className={path === "/time-logs" ? "text-app-purple font-medium" : ""}>Time Logs</span>
       </Link>
-      
-      <Link 
-        to="/emergency-logs" 
+
+      <Link
+        to="/emergency-logs"
         className={`nav-item ${path === "/emergency-logs" ? "active" : ""}`}
       >
         <div className={`relative ${path === "/emergency-logs" ? "p-2 bg-app-purple/10 rounded-full" : ""}`}>
@@ -46,9 +46,9 @@ const BottomNav = () => {
         </div>
         <span className={path === "/emergency-logs" ? "text-app-purple font-medium" : ""}>Emergency</span>
       </Link>
-      
-      <Link 
-        to="/profile" 
+
+      <Link
+        to="/profile"
         className={`nav-item ${path === "/profile" ? "active" : ""}`}
       >
         <div className={`relative ${path === "/profile" ? "p-2 bg-app-purple/10 rounded-full" : ""}`}>
