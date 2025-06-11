@@ -8,7 +8,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { CalendarIcon } from "lucide-react";
-import { format } from "date-fns";
+import { format, addDays, subDays } from "date-fns";
 import { cn } from "@/lib/utils";
 
 interface DateRangePickerProps {
@@ -16,6 +16,7 @@ interface DateRangePickerProps {
   endDate: Date | null;
   onDateChange: (start: Date | null, end: Date | null) => void;
   className?: string;
+  restrictTo30Days?: boolean;
 }
 
 const DateRangePicker = ({
@@ -23,6 +24,7 @@ const DateRangePicker = ({
   endDate,
   onDateChange,
   className = "",
+  restrictTo30Days = false,
 }: DateRangePickerProps) => {
   const [isStartCalendarOpen, setIsStartCalendarOpen] = useState(false);
   const [isEndCalendarOpen, setIsEndCalendarOpen] = useState(false);
@@ -118,6 +120,8 @@ const DateRangePicker = ({
                 mode="single"
                 selected={startDate}
                 onSelect={handleStartDateSelect}
+                fromDate={subDays(new Date(), 30)}
+                toDate={new Date()}
                 initialFocus
               />
             </PopoverContent>
@@ -143,6 +147,8 @@ const DateRangePicker = ({
                 mode="single"
                 selected={endDate}
                 onSelect={handleEndDateSelect}
+                fromDate={addDays(startDate, 0)}
+                toDate={addDays(startDate, 30)}
                 initialFocus
               />
             </PopoverContent>

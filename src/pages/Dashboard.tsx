@@ -146,7 +146,7 @@ const Dashboard = () => {
               <div className="flex items-center gap-2">
                 <Clock className="text-app-purple" size={25} />
                 <CardTitle className="text-lg font-bold">
-                  Today's Log - {format(new Date(), "EEEE, MMM d")}
+                  Today's Log - {format(new Date(), "EEE, MMM d")}
                 </CardTitle>
               </div>
             </CardHeader>
