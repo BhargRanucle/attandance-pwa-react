@@ -88,8 +88,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (!success) {
         logout();
       } else {
-      scheduleRefresh(tokenToSchedule);
-    }
+        scheduleRefresh(tokenToSchedule);
+      }
     }, refreshTime);
   }
 
@@ -127,19 +127,36 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       });
       const newToken = res.data.data.token;
       if (newToken) {
-        localStorage.setItem('auth-token', newToken);
+        localStorage.setItem('staffuser_token', newToken);
+        setToken(newToken);
+        scheduleRefresh(newToken);
 
         if (navigator.serviceWorker?.controller) {
           navigator.serviceWorker.controller.postMessage({
             type: 'SAVE_AUTH_TOKEN',
             token: newToken,
           });
+
+          // Trigger retry for location queue
+          navigator.serviceWorker.controller.postMessage({
+            type: 'RETRY_LOCATION_QUEUE',
+          });
+        } else {
+          navigator.serviceWorker.addEventListener('controllerchange', () => {
+            if (navigator.serviceWorker.controller) {
+              navigator.serviceWorker.controller.postMessage({
+                type: 'SAVE_AUTH_TOKEN',
+                token: newToken,
+              });
+              navigator.serviceWorker.controller.postMessage({
+                type: 'RETRY_LOCATION_QUEUE',
+              });
+            }
+          });
         }
+        return true;
       }
-      setToken(newToken);
-      localStorage.setItem("staffuser_token", newToken);
-      scheduleRefresh(newToken);
-      return true;
+      return false;
     } catch (err) {
       console.error("Failed to refresh token", err);
       return false;

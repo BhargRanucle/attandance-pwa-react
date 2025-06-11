@@ -41,10 +41,10 @@ self.addEventListener('activate', (event) => {
 
 /* ---------- message handler ---------- */
 self.addEventListener('message', (event) => {
-  if (event.data.type === 'ENQUEUE_LOCATION') {
-    event.waitUntil(handleLocationMessage(event.data.data));
-  } else if (event.data.type === 'SAVE_AUTH_TOKEN') {
+  if (event.data.type === 'SAVE_AUTH_TOKEN') {
     event.waitUntil(saveAuthTokenInCache(event.data.token));
+  } else if (event.data.type === 'RETRY_LOCATION_QUEUE') {
+    event.waitUntil(processLocationQueue());
   }
 });
 

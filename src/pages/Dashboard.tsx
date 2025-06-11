@@ -50,25 +50,39 @@ const Dashboard = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
+        setIsLoading(true);
         const token = localStorage.getItem("staffuser_token");
-        const todayResponse = await axios.post(`${API_URL}dashboard-today-log/${user.id}`, {},
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
+        // Fetch today's log
+        const todayResponse = await axios.post(
+          `${API_URL}dashboard-today-log/${user.id}`,
+          {},
+          { headers: { Authorization: `Bearer ${token}` } }
         );
         if (todayResponse.data.success && todayResponse.data.data.length > 0) {
-          setTodayLog(todayResponse.data.data[0]);
-          const lastPunch = todayResponse.data.data[0].punches[todayResponse.data.data[0].punches.length - 1];
-          setIsCheckedIn(lastPunch?.type === "check-in");
-        }
-        const weeklyResponse = await axios.post(`${API_URL}dashboard-weekly-log/${user.id}`, {},
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
+          const todayData = todayResponse.data.data[0];
+          setTodayLog(todayData);
+          const lastPunch = todayData.punches[todayData.punches.length - 1];
+          const isCheckedInNow = lastPunch?.type === "check-in";
+          setIsCheckedIn(isCheckedInNow);
+          const [hours, minutes, seconds] = todayData.total_hours.split(':').map(Number);
+          const totalSeconds = hours * 3600 + minutes * 60 + seconds;
+          if (isCheckedInNow) {
+            const lastCheckIn = todayData.punches
+              .filter(p => p.type === "check-in")
+              .pop()?.timestamp;
+            if (lastCheckIn) {
+              setElapsedTime(totalSeconds);
+            }
           }
+          else {
+            setElapsedTime(totalSeconds);
+          }
+        }
+        // Fetch weekly logs
+        const weeklyResponse = await axios.post(
+          `${API_URL}dashboard-weekly-log/${user.id}`,
+          {},
+          { headers: { Authorization: `Bearer ${token}` } }
         );
         if (weeklyResponse.data.success) {
           setWeeklyLogs(weeklyResponse.data.data);
@@ -79,27 +93,19 @@ const Dashboard = () => {
         setIsLoading(false);
       }
     };
+
     fetchData();
   }, [user?.id]);
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
-    if (isCheckedIn && todayLog) {
-      const updateElapsedTime = () => {
-        const lastCheckIn = todayLog.punches
-          .filter(p => p.type === "check-in")
-          .pop()?.timestamp;
-        if (lastCheckIn) {
-          const checkInTime = new Date(lastCheckIn).getTime();
-          const now = new Date().getTime();
-          setElapsedTime(Math.floor((now - checkInTime) / 1000));
-        }
-      };
-      updateElapsedTime();
-      interval = setInterval(updateElapsedTime, 1000);
+    if (isCheckedIn) {
+      interval = setInterval(() => {
+        setElapsedTime(prev => prev + 1);
+      }, 1000);
     }
     return () => clearInterval(interval);
-  }, [isCheckedIn, todayLog]);
+  }, [isCheckedIn]);
 
   const getWeeklySummary = (): WeeklySummary => {
     const presentDays = weeklyLogs.length;
@@ -145,7 +151,7 @@ const Dashboard = () => {
               </div>
             </CardHeader>
             <CardContent className="p-5">
-              {todayLog ? (
+              {todayLog && todayLog.check_in ? (
                 <div className="flex flex-col items-center py-3 space-y-4">
                   <div className="text-center">
                     <p className="text-sm text-muted-foreground mb-1">

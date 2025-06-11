@@ -23,7 +23,7 @@ const Profile = () => {
     email: user?.email || "",
     department: user?.department || "",
     address: user?.address || "",
-    profilePicture: user?.profilePicture || "",
+    profilePicture: user?.image || "",
   });
 
   // Cropper states
@@ -116,9 +116,9 @@ const Profile = () => {
                 <Avatar className="h-24 w-24 md:h-28 md:w-28 border-2 border-app-white shadow-lg">
                   <AvatarImage
                     src={
-                      formData.profilePicture.startsWith("data:image/")
+                      formData.profilePicture?.startsWith("data:image/")
                         ? formData.profilePicture
-                        : `data:image/jpeg;base64,${formData.profilePicture}`
+                        : `data:image/jpeg;base64,${formData.profilePicture || ""}`
                     }
                   />
                   <AvatarFallback className="bg-gradient-to-b from-app-purple to-app-purple-dark text-white text-2xl">

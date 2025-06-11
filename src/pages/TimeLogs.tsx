@@ -18,7 +18,6 @@ const TimeLogs = () => {
     elapsedTime,
     checkIn,
     checkOut,
-    getFilteredLogs,
     totalBreakTimeToday,
     earliestCheckInTime,
     isLoading,
@@ -33,22 +32,22 @@ const TimeLogs = () => {
 
   const [startDate, setStartDate] = useState<Date>(() => {
     const d = new Date();
-    d.setDate(d.getDate() - 5);
+    d.setDate(d.getDate() - 6);
     return d;
   });
 
   const [endDate, setEndDate] = useState<Date>(() => new Date());
 
   const handleDateRangeChange = (start: Date, end: Date) => {
-    const s = start.toISOString().split("T")[0];
-    const e = end.toISOString().split("T")[0];
+    const s = format(start, "yyyy-MM-dd");
+    const e = format(end, "yyyy-MM-dd");
     setRange(s, e);
     fetchRangeLogs(s, e);
   };
 
   useEffect(() => {
-    const formattedStart = startDate.toISOString().split("T")[0];
-    const formattedEnd = endDate.toISOString().split("T")[0];
+    const formattedStart = format(startDate, "yyyy-MM-dd");
+    const formattedEnd = format(endDate, "yyyy-MM-dd");
     fetchRangeLogs(formattedStart, formattedEnd);
   }, []);
 
@@ -243,14 +242,6 @@ const TimeLogs = () => {
             >
               Allow location
             </Button>
-
-            <p className="text-sm text-muted-foreground">
-              If you don’t see the browser prompt, enable location manually:
-              <br />
-              • Chrome: <kbd>Settings › Privacy & Security › Site Settings › Location</kbd>
-              <br />
-              • Safari (iOS): <kbd>Settings › Privacy › Location Services › Safari</kbd>
-            </p>
           </div>
         </div>
       )}
