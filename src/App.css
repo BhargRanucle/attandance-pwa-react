@@ -1,3 +1,7 @@
+body {
+  background-color: transparent !important;
+}
+
 #root {
   max-width: 100%;
   margin: 0 auto;
@@ -9,53 +13,63 @@ img.header-logo {
   width: 120px !important;
   height: auto;
 }
+
 img.header-logoLogin {
   width: 200px !important;
   height: auto;
 }
+
 .nav-item {
   color: #fff;
 }
+
 .nav-item.active {
   --tw-text-opacity: 1;
   color: rgb(246 134 31 / var(--tw-text-opacity, 1));
 }
+
 .orange-background {
   width: 70px;
 }
+
 p.heading-report.text-2xl.font-semibold.mt-1.text-app-purple {
   font-size: 30px;
   line-height: 40px;
 }
+
 .focus-visible\:ring-offset-2:focus-visible {
   --tw-ring-offset-width: 1px !important;
 }
+
 .focus-visible\:ring-ring:focus-visible {
   --tw-ring-color: #f6861f !important;
 }
+
 .focus-visible\:ring-2:focus-visible {
-  --tw-ring-offset-shadow: var(--tw-ring-inset) 0 0 0
-    var(--tw-ring-offset-width) var(--tw-ring-offset-color);
-  --tw-ring-shadow: var(--tw-ring-inset) 0 0 0
-    calc(1px + var(--tw-ring-offset-width)) var(--tw-ring-color) !important;
+  --tw-ring-offset-shadow: var(--tw-ring-inset) 0 0 0 var(--tw-ring-offset-width) var(--tw-ring-offset-color);
+  --tw-ring-shadow: var(--tw-ring-inset) 0 0 0 calc(1px + var(--tw-ring-offset-width)) var(--tw-ring-color) !important;
   box-shadow: var(--tw-ring-offset-shadow), var(--tw-ring-shadow),
     var(--tw-shadow, 0 0 #0000);
 }
+
 .focus-visible\:outline-none:focus-visible {
   outline: 1px solid transparent !important;
   outline-offset: 1px !important;
 }
+
 input.bg-background,
 textarea.bg-background,
 button.change-photo.bg-background {
   background-color: rgba(246, 134, 31, 0.05) !important;
 }
+
 input:-webkit-autofill,
 textarea:-webkit-autofill {
   -webkit-box-shadow: 0 0 0 1000px rgba(246, 134, 31, 0.05) inset !important;
   -webkit-text-fill-color: #222222 !important;
   transition: background-color 5000s ease-in-out 0s;
 }
+
 li.group.pointer-events-auto.bg-background.text-foreground {
   background: rgb(40 180 99) !important;
   text-align: left !important;
@@ -64,6 +78,7 @@ li.group.pointer-events-auto.bg-background.text-foreground {
   z-index: 9999 !important;
   border: 1px solid #ffffff !important;
 }
+
 header button {
   border: 1px solid #fff !important;
   border-radius: 50% !important;
@@ -74,17 +89,19 @@ header button {
   height: 320px !important;
   max-width: 95% !important;
 }
+
 .top-spacing {
   margin-top: 0px !important;
 }
+
 .reactEasyCrop_CropArea.reactEasyCrop_CropAreaRound {
   width: 250px !important;
   height: 250px !important;
 }
+
 .loginPage {
   position: fixed;
-  top: 12%;
-  bottom: 0;
+  top: 20%;
   padding: 0 10px;
 }
 
@@ -136,6 +153,7 @@ header button {
   from {
     transform: rotate(0deg);
   }
+
   to {
     transform: rotate(360deg);
   }
@@ -163,13 +181,14 @@ header button {
 
 
 /* Loader Css */
-#loader{
-  width:100%;
-  height:100vh;
-  display:flex;
-  align-items:center;
-  justify-content:center;
+#loader {
+  width: 100%;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
+
 .circle-loader {
   display: flex;
   align-items: center;
