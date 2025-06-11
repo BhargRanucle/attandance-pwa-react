@@ -69,7 +69,7 @@
   ],
   "protocol_handlers": [
     {
-      "protocol": "web+ranucle",
+      "protocol": "web+vardan",
       "url": "/open?url=%s"
     }
   ],
@@ -116,7 +116,7 @@
     }
   ],
   "background_sync": {
-    "name": "RanucleSync",
+    "name": "VardanSync",
     "minInterval": 3600
   },
   "periodic_sync": {
