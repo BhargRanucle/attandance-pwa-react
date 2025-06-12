@@ -74,34 +74,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }
 
   // Schedule token refresh some minutes before expiration
-  function scheduleRefresh(tokenToSchedule: string) {
+  function scheduleRefresh(currentToken: string) {
     if (refreshTimeoutId.current) {
       clearTimeout(refreshTimeoutId.current);
     }
-    const expiryTime = getTokenExpiry(tokenToSchedule);
+    const expiryTime = getTokenExpiry(currentToken);
     if (!expiryTime) return;
     const now = Date.now();
     const msBeforeExpiry = expiryTime - now;
-    const refreshTime = msBeforeExpiry > 60_000 ? msBeforeExpiry - 60_000 : 0;
+    if (msBeforeExpiry <= 0) {
+      logout();
+      return;
+    }
+    const refreshTime = Math.max(msBeforeExpiry - 60_000, 0);
     refreshTimeoutId.current = setTimeout(async () => {
       const success = await refreshToken();
       if (!success) {
         logout();
-      } else {
-        scheduleRefresh(tokenToSchedule);
       }
     }, refreshTime);
   }
-
-  useEffect(() => {
-    setIsLoading(false);
-    if (token) {
-      scheduleRefresh(token);
-    }
-    return () => {
-      if (refreshTimeoutId.current) clearTimeout(refreshTimeoutId.current);
-    };
-  }, [token]);
 
   const verifyToken = async (): Promise<boolean> => {
     if (!token) return false;
@@ -126,37 +118,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         },
       });
       const newToken = res.data.data.token;
-      if (newToken) {
-        localStorage.setItem('staffuser_token', newToken);
-        setToken(newToken);
-        scheduleRefresh(newToken);
-
-        if (navigator.serviceWorker?.controller) {
+      if (!newToken) return false;
+      localStorage.setItem('staffuser_token', newToken);
+      setToken(newToken);
+      scheduleRefresh(newToken);
+      const sendTokenToSW = () => {
+        if (navigator.serviceWorker.controller) {
           navigator.serviceWorker.controller.postMessage({
             type: 'SAVE_AUTH_TOKEN',
             token: newToken,
           });
-
-          // Trigger retry for location queue
           navigator.serviceWorker.controller.postMessage({
             type: 'RETRY_LOCATION_QUEUE',
           });
-        } else {
-          navigator.serviceWorker.addEventListener('controllerchange', () => {
-            if (navigator.serviceWorker.controller) {
-              navigator.serviceWorker.controller.postMessage({
-                type: 'SAVE_AUTH_TOKEN',
-                token: newToken,
-              });
-              navigator.serviceWorker.controller.postMessage({
-                type: 'RETRY_LOCATION_QUEUE',
-              });
-            }
-          });
         }
-        return true;
+      };
+      if (navigator.serviceWorker.controller) {
+        sendTokenToSW();
+      } else {
+        navigator.serviceWorker.addEventListener('controllerchange', sendTokenToSW, { once: true });
       }
-      return false;
+      return true;
     } catch (err) {
       console.error("Failed to refresh token", err);
       return false;
@@ -237,6 +219,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const isAuthenticated = !!user && !!token;
+
+  useEffect(() => {
+    setIsLoading(false);
+    if (token) {
+      scheduleRefresh(token);
+    }
+    return () => {
+      if (refreshTimeoutId.current) {
+        clearTimeout(refreshTimeoutId.current);
+      }
+    };
+  }, []);
 
   return (
     <AuthContext.Provider
