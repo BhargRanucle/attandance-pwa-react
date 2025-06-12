@@ -16,7 +16,6 @@ self.addEventListener('install', (event) => {
         '/manifest.json',
         '/favicon.ico',
         '/favicon.png',
-        '/favicon.png',
         OFFLINE_FALLBACK,
       ]))
   );
