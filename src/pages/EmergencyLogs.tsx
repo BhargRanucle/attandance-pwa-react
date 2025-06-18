@@ -82,7 +82,6 @@ const EmergencyLogs = () => {
     setIsLoading(true);
     setErrorLogs(null);
     try {
-      console.log("Calling API with:", { startDate, endDate });
       const response = await axios.post(
         `${API_URL}emergency-log`,
         {

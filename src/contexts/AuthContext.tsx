@@ -59,6 +59,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [pendingPhone, setPendingPhone] = useState<string | null>(null);
   const navigate = useNavigate();
 
+  useEffect(() => {
+    const verifyAndRedirect = async () => {
+      if (!token) {
+        logout();
+        return;
+      }
+      const valid = await verifyToken();
+      if (!valid) {
+        logout();
+      } else {
+        if (location.pathname === "/") {
+          navigate("/time-logs");
+        }
+      }
+    };
+    verifyAndRedirect();
+  }, []);
+
   // We'll store the refresh timeout id here
   const refreshTimeoutId = useRef<NodeJS.Timeout | null>(null);
 
@@ -74,26 +92,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }
 
   // Schedule token refresh some minutes before expiration
-  function scheduleRefresh(currentToken: string) {
-    if (refreshTimeoutId.current) {
-      clearTimeout(refreshTimeoutId.current);
-    }
-    const expiryTime = getTokenExpiry(currentToken);
-    if (!expiryTime) return;
-    const now = Date.now();
-    const msBeforeExpiry = expiryTime - now;
-    if (msBeforeExpiry <= 0) {
-      logout();
-      return;
-    }
-    const refreshTime = Math.max(msBeforeExpiry - 60_000, 0);
-    refreshTimeoutId.current = setTimeout(async () => {
-      const success = await refreshToken();
-      if (!success) {
-        logout();
-      }
-    }, refreshTime);
-  }
+  // function scheduleRefresh(currentToken: string) {
+  //   if (refreshTimeoutId.current) {
+  //     clearTimeout(refreshTimeoutId.current);
+  //   }
+  //   const expiryTime = getTokenExpiry(currentToken);
+  //   if (!expiryTime) return;
+  //   const now = Date.now();
+  //   const msBeforeExpiry = expiryTime - now;
+  //   if (msBeforeExpiry <= 0) {
+  //     logout();
+  //     return;
+  //   }
+  //   const refreshIn = Math.min(30 * 60 * 1000, msBeforeExpiry - 60_000);
+  //   refreshTimeoutId.current = setTimeout(async () => {
+  //     const success = await refreshToken();
+  //     if (!success) {
+  //       logout();
+  //     }
+  //   }, Math.max(refreshIn, 0));
+  // }
 
   const verifyToken = async (): Promise<boolean> => {
     if (!token) return false;
@@ -121,7 +139,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (!newToken) return false;
       localStorage.setItem('staffuser_token', newToken);
       setToken(newToken);
-      scheduleRefresh(newToken);
+      // scheduleRefresh(newToken);
       const sendTokenToSW = () => {
         if (navigator.serviceWorker.controller) {
           navigator.serviceWorker.controller.postMessage({
@@ -222,15 +240,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   useEffect(() => {
     setIsLoading(false);
-    if (token) {
-      scheduleRefresh(token);
-    }
+    // if (token) {
+    //   scheduleRefresh(token);
+    // }
     return () => {
       if (refreshTimeoutId.current) {
         clearTimeout(refreshTimeoutId.current);
       }
     };
-  }, []);
+  }, [token]);
 
   return (
     <AuthContext.Provider
