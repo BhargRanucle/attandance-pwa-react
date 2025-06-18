@@ -38,6 +38,7 @@ const Dashboard = () => {
   const { isAuthenticated, user } = useAuth();
   const [todayLog, setTodayLog] = useState<Log | null>(null);
   const [weeklyLogs, setWeeklyLogs] = useState<Log[]>([]);
+  const [weeklySummary, setWeeklySummary] = useState<WeeklySummary | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isCheckedIn, setIsCheckedIn] = useState(false);
   const [isOnBreak, setIsOnBreak] = useState(false);
@@ -85,7 +86,21 @@ const Dashboard = () => {
           { headers: { Authorization: `Bearer ${token}` } }
         );
         if (weeklyResponse.data.success) {
-          setWeeklyLogs(weeklyResponse.data.data);
+          const responseData = weeklyResponse.data.data;
+          setWeeklyLogs(responseData.recent_logs || []);
+
+          const parseTime = (timeStr: string): number => {
+            const [h, m, s] = timeStr.split(":").map(Number);
+            return h + m / 60 + s / 3600;
+          };
+
+          const summary = responseData.summary;
+          setWeeklySummary({
+            totalHours: parseTime(summary.total_hours),
+            totalBreakTime: parseTime(summary.total_break),
+            presentDays: summary.present_days,
+            averageHours: parseTime(summary.avg_per_day),
+          });
         }
       } catch (error) {
         console.error("Error fetching dashboard data:", error);
@@ -107,16 +122,18 @@ const Dashboard = () => {
     return () => clearInterval(interval);
   }, [isCheckedIn]);
 
-  const getWeeklySummary = (): WeeklySummary => {
+  const calculateWeeklySummary = (): WeeklySummary => {
     const presentDays = weeklyLogs.length;
     let totalHours = 0;
     let totalBreakTime = 0;
+
     weeklyLogs.forEach(log => {
       const [hours, minutes] = log.total_hours.split(':').map(Number);
       totalHours += hours + (minutes / 60);
       const [breakHours, breakMinutes] = log.break_hours.split(':').map(Number);
       totalBreakTime += breakHours + (breakMinutes / 60);
     });
+
     const averageHours = presentDays > 0 ? totalHours / presentDays : 0;
     return {
       totalHours,
@@ -126,14 +143,16 @@ const Dashboard = () => {
     };
   };
 
-  const weeklySummary = getWeeklySummary();
+  const summary = weeklySummary;
   const recentLogs = weeklyLogs
     .filter(log => log.date !== todayLog?.date)
-    .slice(0, 3)
+    .slice(0, 6)
     .reverse();
+
   if (isLoading) {
     return <Loader />;
   }
+  // console.log("summary", summary);
 
   return (
     <Layout title="Dashboard">
@@ -207,25 +226,25 @@ const Dashboard = () => {
                 <div className="text-center p-3 bg-gradient-to-br from-white to-app-purple-light/30 rounded-lg">
                   <p className="text-[#222222] text-sm">Total Hours</p>
                   <p className="heading-report text-2xl font-semibold mt-1 text-app-purple">
-                    {weeklySummary.totalHours.toFixed(1)}h
+                    {Number(summary?.totalHours || 0).toFixed(1)}h
                   </p>
                 </div>
                 <div className="text-center p-3 bg-gradient-to-br from-white to-app-purple-light/30 rounded-lg">
                   <p className="text-[#222222] text-sm">Present Days</p>
                   <p className="heading-report text-2xl font-semibold mt-1 text-app-purple">
-                    {`${weeklySummary.presentDays}/6`}
+                    {`${summary.presentDays}/6`}
                   </p>
                 </div>
                 <div className="text-center p-3 bg-gradient-to-br from-white to-app-purple-light/30 rounded-lg">
                   <p className="text-[#222222] text-sm">Avg. Hours/Day</p>
                   <p className="heading-report text-2xl font-semibold mt-1 text-app-purple">
-                    {weeklySummary.averageHours.toFixed(1)}h
+                    {Number(summary?.averageHours || 0).toFixed(1)}h
                   </p>
                 </div>
                 <div className="text-center p-3 bg-gradient-to-br from-white to-app-purple-light/30 rounded-lg">
                   <p className="text-[#222222] text-sm">Total Break</p>
                   <p className="heading-report text-2xl font-semibold mt-1 text-app-purple">
-                    {weeklySummary.totalBreakTime.toFixed(1)}h
+                    {Number(summary?.totalBreakTime || 0).toFixed(1)}h
                   </p>
                 </div>
               </div>
@@ -250,8 +269,6 @@ const Dashboard = () => {
                 {recentLogs.map((log) => {
                   const [totalHours, totalMinutes] = log.total_hours.split(':').map(Number);
                   const [breakHours, breakMinutes] = log.break_hours.split(':').map(Number);
-                  const workHours = totalHours - breakHours;
-                  const workMinutes = totalMinutes - breakMinutes;
                   return (
                     <div
                       key={log.date}
